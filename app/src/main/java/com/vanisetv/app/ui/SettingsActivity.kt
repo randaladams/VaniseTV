@@ -14,7 +14,7 @@ import com.vanisetv.app.data.Prefs
 import com.vanisetv.app.data.Sources
 
 class SettingsActivity : BaseActivity() {
-    private enum class Section { TIME, LANG, SOUND, SAVER, SOURCES, ABOUT }
+    private enum class Section { TIME, LANG, SOUND, SAVER, SUBS, SOURCES, ABOUT }
 
     private lateinit var menu: LinearLayout
     private lateinit var options: LinearLayout
@@ -30,7 +30,7 @@ class SettingsActivity : BaseActivity() {
 
         listOf(
             Section.TIME to R.string.s_time, Section.LANG to R.string.s_lang, Section.SOUND to R.string.s_sound,
-            Section.SAVER to R.string.s_saver, Section.SOURCES to R.string.s_sources, Section.ABOUT to R.string.s_about,
+            Section.SAVER to R.string.s_saver, Section.SUBS to R.string.s_subs, Section.SOURCES to R.string.s_sources, Section.ABOUT to R.string.s_about,
         ).forEach { (s, label) -> menuViews[s] = addMenuItem(s, getString(label)) }
 
         refreshMenuValues()
@@ -74,12 +74,17 @@ class SettingsActivity : BaseActivity() {
         set(Section.LANG, if (p.lang == "pt") "Português" else "English")
         set(Section.SOUND, getString(if (p.clicks) R.string.on else R.string.off))
         set(Section.SAVER, saverLabel(p.saverMinutes))
+        set(Section.SUBS, if (p.subSize == "sys") "Fire TV" else sizeLabel(p.subSize))
         set(Section.SOURCES, listOf(p.source1, p.source2).count { it.isNotBlank() }.toString())
         set(Section.ABOUT, "v${BuildConfig.VERSION_NAME}")
     }
 
     private fun saverLabel(m: Int) = getString(
         when (m) { 3 -> R.string.saver_3; 10 -> R.string.saver_10; 60 -> R.string.saver_60; else -> R.string.saver_never }
+    )
+
+    private fun sizeLabel(v: String) = getString(
+        when (v) { "s" -> R.string.size_s; "m" -> R.string.size_m; "l" -> R.string.size_l; else -> R.string.size_sys }
     )
 
     private fun showSection(s: Section) {
@@ -108,6 +113,10 @@ class SettingsActivity : BaseActivity() {
             Section.SAVER -> {
                 title.setText(R.string.s_saver); hint.setText(R.string.hint_saver)
                 listOf(3, 10, 60, 0).forEach { m -> addOption(saverLabel(m), "", p.saverMinutes == m) { p.saverMinutes = m } }
+            }
+            Section.SUBS -> {
+                title.setText(R.string.s_subs); hint.setText(R.string.hint_subs)
+                listOf("sys", "s", "m", "l").forEach { v -> addOption(sizeLabel(v), "", p.subSize == v) { p.subSize = v } }
             }
             Section.SOURCES -> {
                 title.setText(R.string.s_sources); hint.setText(R.string.hint_sources)

@@ -5,7 +5,11 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import androidx.annotation.OptIn
+import androidx.media3.common.C
+import androidx.media3.common.Format
 import androidx.media3.common.MediaItem
+import androidx.media3.common.TrackSelectionOverride
+import androidx.media3.common.Tracks
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -87,9 +91,55 @@ class TvPlayer(private val context: Context, private val view: PlayerView, priva
         start(ch)
     }
 
+    // ---------------- subtitles & audio ----------------
+
+    /** One selectable audio or subtitle track of the current stream. */
+    data class TrackOption(val group: Tracks.Group, val index: Int, val format: Format, val selected: Boolean) {
+        val language: String? get() = format.language?.takeIf { it.isNotBlank() && it != C.LANGUAGE_UNDETERMINED }
+    }
+
+    /** Supported tracks of [type] (C.TRACK_TYPE_AUDIO or C.TRACK_TYPE_TEXT) in the playing stream. */
+    fun options(type: Int): List<TrackOption> {
+        val p = player ?: return emptyList()
+        return p.currentTracks.groups.filter { it.type == type }.flatMap { g ->
+            (0 until g.length).filter { g.isTrackSupported(it) }.map { i -> TrackOption(g, i, g.getTrackFormat(i), g.isTrackSelected(i)) }
+        }
+    }
+
+    /** Switches to [option] right away (no restart). */
+    fun select(option: TrackOption) {
+        val p = player ?: return
+        p.trackSelectionParameters = p.trackSelectionParameters.buildUpon()
+            .setTrackTypeDisabled(option.group.type, false)
+            .setOverrideForType(TrackSelectionOverride(option.group.mediaTrackGroup, option.index))
+            .build()
+    }
+
+    fun subtitlesOff() {
+        val p = player ?: return
+        p.trackSelectionParameters = p.trackSelectionParameters.buildUpon()
+            .clearOverridesOfType(C.TRACK_TYPE_TEXT)
+            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
+            .build()
+    }
+
+    /** The remembered choices (Prefs) decide the tracks each new channel starts with. */
+    private fun applyPreferences(p: ExoPlayer) {
+        val prefs = App.instance.prefs
+        val b = p.trackSelectionParameters.buildUpon().clearOverrides()
+            .setPreferredAudioLanguage(prefs.audioLang.ifEmpty { null })
+        when (val s = prefs.subsLang) {
+            "off" -> b.setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
+            "und" -> b.setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false).setPreferredTextLanguage(null).setSelectUndeterminedTextLanguage(true)
+            else -> b.setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false).setPreferredTextLanguage(s).setSelectUndeterminedTextLanguage(false)
+        }
+        p.trackSelectionParameters = b.build()
+    }
+
     private fun start(channel: Channel) {
         stopCurrent()
         val p = player ?: return
+        applyPreferences(p)
         current = channel
         retried = false
         p.setMediaSource(buildSource(channel))

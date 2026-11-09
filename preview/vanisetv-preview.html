@@ -115,7 +115,7 @@ kbd{font:500 12px var(--f-ui);border:1px solid var(--page-line);border-bottom-wi
 /* settings */
 .s-title{position:absolute;left:96px;top:64px;font-size:60px;font-weight:500}
 .s-menu{position:absolute;left:96px;top:180px;width:620px;display:grid;gap:16px}
-.s-item{background:var(--tv-tile);border-radius:14px;padding:26px 32px;font-size:36px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.s-item{background:var(--tv-tile);border-radius:14px;padding:20px 32px;font-size:36px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
 .s-item span{color:var(--tv-muted);font-size:28px}
 .s-item.sel{background:#22394a}
 .s-item.focus{background:#e9eef2;color:#0c1620}
@@ -167,6 +167,19 @@ kbd{font:500 12px var(--f-ui);border:1px solid var(--page-line);border-bottom-wi
 .btn.focus{background:#e9eef2;color:#0c1620}
 .bar{height:14px;border-radius:7px;background:#25394a;overflow:hidden;margin:28px 0 10px}
 .bar i{display:block;height:100%;width:0;background:var(--tv-focus);transition:width .2s}
+
+/* subtitles & audio menu (Menu button) */
+.tmenu{position:absolute;top:0;right:0;bottom:0;width:660px;background:rgba(12,22,32,.95);border-left:2px solid var(--tv-line);padding:64px 44px;z-index:5;box-shadow:-30px 0 60px rgba(0,0,0,.5)}
+.tmenu h3{font-size:42px;font-weight:500;margin:0 0 8px}
+.tmenu .sub{font-size:26px;color:var(--tv-muted);margin:0 0 30px;font-family:var(--f-body)}
+.trow{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:24px 28px;border-radius:12px;background:var(--tv-tile);font-size:32px;margin-bottom:12px;cursor:pointer}
+.trow span{color:var(--tv-muted);font-size:28px}
+.trow.dis{opacity:.5}
+.trow.focus{background:#e9eef2;color:#0c1620}.trow.focus span{color:#34495a}
+.tmark{color:var(--tv-focus);width:44px;flex:none;font-weight:600}
+.trow.focus .tmark{color:#b26b00}
+.tmenu .foot{position:absolute;left:44px;right:44px;bottom:40px;font-size:24px;color:var(--tv-muted);font-family:var(--f-body)}
+.caption{position:absolute;left:50%;bottom:9%;transform:translateX(-50%);background:rgba(0,0,0,.78);color:#fff;padding:.15em .6em;border-radius:6px;white-space:nowrap;z-index:2;font-family:var(--f-body)}
 
 /* screensaver */
 .saver{background:#000}
@@ -224,6 +237,7 @@ kbd{font:500 12px var(--f-ui);border:1px solid var(--page-line);border-bottom-wi
           </div>
           <div class="video" id="video">
             <div class="pic" id="pic"></div>
+            <div class="caption" id="cap" hidden></div>
             <div class="msg"><div class="spinner"></div><span id="vmsg"></span></div>
             <div class="vbadge"><svg width="30" height="30" viewBox="0 0 64 64"><path d="M10 24h10l14-12v40L20 40H10z" fill="#fff"/><path d="M44 22a14 14 0 0 1 0 20M50 14a24 24 0 0 1 0 36" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/></svg><span id="vlabel"></span></div>
           </div>
@@ -234,6 +248,7 @@ kbd{font:500 12px var(--f-ui);border:1px solid var(--page-line);border-bottom-wi
         <!-- FULLSCREEN -->
         <section class="screen fs" id="s-full">
           <div class="pic" id="fpic"></div>
+          <div class="caption" id="fcap" hidden></div>
           <div class="banner">
             <div class="logo" id="flogo"></div>
             <div><h2 id="fname"></h2><p id="fmeta"></p></div>
@@ -249,6 +264,7 @@ kbd{font:500 12px var(--f-ui);border:1px solid var(--page-line);border-bottom-wi
             <div class="s-item" data-f data-panel="lang"><b data-t="sLang">Language</b> <span id="sv-lang"></span></div>
             <div class="s-item" data-f data-panel="sound"><b data-t="sSound">Remote click sounds</b> <span id="sv-sound"></span></div>
             <div class="s-item" data-f data-panel="saver"><b data-t="sSaver">Screen saver</b> <span id="sv-saver"></span></div>
+            <div class="s-item" data-f data-panel="subs"><b data-t="sSubs">Subtitles</b> <span id="sv-subs"></span></div>
             <div class="s-item" data-f data-panel="sources"><b data-t="sSources">Channel sources</b> <span>2</span></div>
             <div class="s-item" data-f data-panel="about"><b data-t="sAbout">About</b> <span>v1.1.0</span></div>
           </div>
@@ -269,6 +285,9 @@ kbd{font:500 12px var(--f-ui);border:1px solid var(--page-line);border-bottom-wi
           <div class="credit" data-t="credit"></div>
           <div class="float" id="float"><div class="t" data-clock></div><div class="d" data-dateline></div></div>
         </section>
+
+        <!-- SUBTITLES & AUDIO MENU (Menu button while a channel plays) -->
+        <div class="tmenu" id="tmenu" hidden></div>
 
         <!-- REFRESH DIALOG (overlay) -->
         <div class="scrim" id="refresh" hidden>
@@ -292,6 +311,7 @@ kbd{font:500 12px var(--f-ui);border:1px solid var(--page-line);border-bottom-wi
     <span><kbd>←</kbd> <kbd>↑</kbd> <kbd>→</kbd> <kbd>↓</kbd> move</span>
     <span><kbd>Enter</kbd> OK / select</span>
     <span><kbd>Esc</kbd> or <kbd>Backspace</kbd> Back</span>
+    <span><kbd>M</kbd> Menu ☰ (while a channel plays)</span>
     <span>Mouse clicks work too</span>
   </div>
 
@@ -317,7 +337,7 @@ const CH=[
 const watch={"Rede Globo":["#1",41],"GloboNews":["#2",23],"Record":["#3",9]};
 const CATS=["all","Novelas","News","General","Entertainment","Sports","Kids","Series","Other"];
 const DEF_SRC=["https://iptv-org.github.io/iptv/countries/br.m3u","https://famelack.com/tv/br"];
-const S={equery:"",esearching:false,query:"",searching:false,src:[...DEF_SRC],editing:null,style:"br",lang:"en",clicks:true,saver:10,screen:"home",prev:"home",playing:null,cat:0,panel:"time"};
+const S={subs:"off",prefAudio:"por",subSize:"sys",equery:"",esearching:false,query:"",searching:false,src:[...DEF_SRC],editing:null,style:"br",lang:"en",clicks:true,saver:10,screen:"home",prev:"home",playing:null,cat:0,panel:"time"};
 
 /* ---------- every on-screen text, in both languages (mirrors the app string files) ---------- */
 const TX={
@@ -340,10 +360,15 @@ const TX={
    aBySrcVal:(a,b)=>`Source 1: ${a} · Source 2: ${b}`,aDownloaded:"Channel list downloaded",
    allCh:"All channels",chCount:n=>`${n} channels`,
    groups:{Novelas:"Novelas",News:"News",General:"General",Entertainment:"Entertainment",Sports:"Sports",Kids:"Kids",Series:"Series",Other:"Other",Education:"Education",Religious:"Religious",Outdoor:"Outdoor"},
+   sSubs:"Subtitles",mSubs:"Subtitles",mAudio:"Audio",subsOff:"Off",notAvail:"Not available",oneTrack:"Only one track",
+   mTitle:"Subtitles and audio",mFoot:"OK selects · Back goes back · closes by itself after 10 seconds",
+   langs:{por:"Portuguese",eng:"English",spa:"Spanish"},
+   sizeOpt:{sys:"Follow Fire TV settings",s:"Small",m:"Medium",l:"Large"},
+   hintSubs:"Size of subtitles while watching. “Follow Fire TV settings” uses the Fire TV’s own caption style (Settings › Accessibility › Captions). Turn subtitles on with the ☰ Menu button while a channel plays.",
    search:"Search",searchRes:(q,n)=>`Search: “${q}” (${n})`,searchNone:q=>`No channels match “${q}”. Press Back to clear the search.`,
    pressOk:"Press OK to watch here. Press OK again for full screen. ⏪ ⏩ jump by letter.",nothing:"Nothing playing yet",
-   tuning:n=>`Tuning to ${n}…`,playing:"Playing with sound. Press OK again for full screen.",
-   nowPlaying:"● Playing",liveSound:n=>`LIVE · ${n} · sound on`,fsHint:"Up / Down changes channel · Back returns",
+   tuning:n=>`Tuning to ${n}…`,playing:"Playing with sound. OK again for full screen · ☰ subtitles & audio.",
+   nowPlaying:"● Playing",liveSound:n=>`LIVE · ${n} · sound on`,fsHint:"Up / Down changes channel · ☰ subtitles & audio · Back returns",
    geo:"Geo-blocked",not247:"Not 24/7",
    eCount:(s,h)=>`<b>${s}</b> shown · ${h} hidden`,shown:"Shown",hidden:"Hidden",
    eHint:"OK shows or hides a channel. Hidden channels disappear from Live TV and the home tiles. Changes are saved right away.",
@@ -372,10 +397,15 @@ const TX={
    aBySrcVal:(a,b)=>`Fonte 1: ${a} · Fonte 2: ${b}`,aDownloaded:"Lista de canais baixada",
    allCh:"Todos os canais",chCount:n=>`${n} canais`,
    groups:{Novelas:"Novelas",News:"Notícias",General:"Geral",Entertainment:"Entretenimento",Sports:"Esportes",Kids:"Infantil",Series:"Séries",Other:"Outros",Education:"Educação",Religious:"Religioso",Outdoor:"Ar livre"},
+   sSubs:"Legendas",mSubs:"Legendas",mAudio:"Áudio",subsOff:"Desligadas",notAvail:"Não disponível",oneTrack:"Só uma faixa",
+   mTitle:"Legendas e áudio",mFoot:"OK seleciona · Voltar volta · fecha sozinho após 10 segundos",
+   langs:{por:"Português",eng:"Inglês",spa:"Espanhol"},
+   sizeOpt:{sys:"Seguir configurações do Fire TV",s:"Pequena",m:"Média",l:"Grande"},
+   hintSubs:"Tamanho das legendas ao assistir. “Seguir configurações do Fire TV” usa o estilo de legendas do próprio Fire TV (Configurações › Acessibilidade › Legendas). Ligue as legendas com o botão ☰ Menu enquanto um canal está passando.",
    search:"Buscar",searchRes:(q,n)=>`Busca: “${q}” (${n})`,searchNone:q=>`Nenhum canal com “${q}”. Pressione Voltar para limpar a busca.`,
    pressOk:"Pressione OK para assistir aqui. OK de novo para tela cheia. ⏪ ⏩ pula por letra.",nothing:"Nada tocando ainda",
-   tuning:n=>`Sintonizando ${n}…`,playing:"Tocando com som. Pressione OK de novo para tela cheia.",
-   nowPlaying:"● Tocando",liveSound:n=>`AO VIVO · ${n} · com som`,fsHint:"Cima / Baixo troca de canal · Voltar retorna",
+   tuning:n=>`Sintonizando ${n}…`,playing:"Tocando com som. OK de novo para tela cheia · ☰ legendas e áudio.",
+   nowPlaying:"● Tocando",liveSound:n=>`AO VIVO · ${n} · com som`,fsHint:"Cima / Baixo troca de canal · ☰ legendas e áudio · Voltar retorna",
    geo:"Bloqueio regional",not247:"Não é 24h",
    eCount:(s,h)=>`<b>${s}</b> visíveis · ${h} ocultos`,shown:"Visível",hidden:"Oculto",
    eHint:"OK mostra ou oculta um canal. Canais ocultos somem da TV ao Vivo e da tela inicial. As mudanças são salvas na hora.",
@@ -454,7 +484,7 @@ function tune(name){
     tuneTimer=null; S.playing=name; const c=CH.find(x=>x.name===name);
     v.classList.remove("tuning"); v.classList.add("playing");
     $("#pic").style.background=fakeVideo(c);
-    const keep=focused&&focused.dataset.name; renderGuide(); if(keep) setFocus($(`#glist [data-name="${CSS.escape(keep)}"]`));
+    updateCaptions(); const keep=focused&&focused.dataset.name; renderGuide(); if(keep) setFocus($(`#glist [data-name="${CSS.escape(keep)}"]`));
   },SETTLE);
 }
 function fakeVideo(c){return `radial-gradient(circle at 30% 35%, ${c.color}cc, transparent 55%), radial-gradient(circle at 75% 70%, #f5b83d55, transparent 50%), linear-gradient(135deg,#0b1218,#22313c)`}
@@ -462,7 +492,7 @@ function openFull(name){
   const c=CH.find(x=>x.name===name)||CH[0]; S.playing=c.name;
   $("#fpic").style.background=fakeVideo(c);
   $("#flogo").outerHTML=`<div class="logo" id="flogo" style="background:${c.color}">${c.abbr}</div>`;
-  $("#fname").textContent=c.name;
+  $("#fname").textContent=c.name; setTimeout(updateCaptions,0);
   $("#fmeta").textContent=[G(c.group),c.q,T("fsHint")].filter(Boolean).join(" · ");
   go("full");
 }
@@ -477,6 +507,8 @@ const PANELS={
    <div class="opts">${opt("clicks",true,T("on"))}${opt("clicks",false,T("off"))}</div>`,
  saver:()=>`<h3>${T("sSaver")}</h3><p class="hint">${T("hintSaver")}</p>
    <div class="opts">${[3,10,60,0].map(v=>opt("saver",v,T("saverOpt")[v])).join("")}</div>`,
+ subs:()=>`<h3>${T("sSubs")}</h3><p class="hint">${T("hintSubs")}</p>
+   <div class="opts">${["sys","s","m","l"].map(v=>opt("subSize",v,T("sizeOpt")[v])).join("")}</div>`,
  sources:()=>`<h3>${T("sSources")}</h3><p class="hint">${T("hintSources")}</p>
    ${[0,1].map(i=>`<div class="field" data-f data-act="editsrc" data-i="${i}"><span class="lbl">${T("source")(i+1)}</span>${S.editing===i?`<input class="url" id="srcin" value="${S.src[i]}">`:`<span class="url">${S.src[i]||T("emptySrc")}</span>`}</div>
    <div class="srcstat">${i===0?T("stat1")(402):T("stat2")(6,102,24)}</div>`).join("")}
@@ -495,6 +527,7 @@ function renderSettings(){
   $("#sv-lang").textContent=S.lang==="en"?"English":"Português";
   $("#sv-sound").textContent=S.clicks?T("on"):T("off");
   $("#sv-saver").textContent=T("saverOpt")[S.saver];
+  $("#sv-subs").textContent=S.subSize==="sys"?"Fire TV":T("sizeOpt")[S.subSize];
   $$(".s-item").forEach(e=>e.classList.toggle("sel",e.dataset.panel===S.panel));
   $("#spanel").innerHTML=PANELS[S.panel]();
 }
@@ -518,9 +551,9 @@ function setFocus(el){
   if(S.screen==="guide" && el.dataset.name) showInfo(CH.find(c=>c.name===el.dataset.name));
   if(S.screen==="settings" && el.dataset.panel && el.dataset.panel!==S.panel){S.panel=el.dataset.panel;renderSettings();}
 }
-function scope(){return $("#refresh").hidden?$("#s-"+S.screen):$("#refresh")}
+function scope(){return !$("#tmenu").hidden?$("#tmenu"):$("#refresh").hidden?$("#s-"+S.screen):$("#refresh")}
 function renderAll(){
-  applyLang(); tick();
+  applyLang(); tick(); updateCaptions();
   if(S.screen==="home") renderHome();
   if(S.screen==="guide") renderGuide();
   if(S.screen==="settings") renderSettings();
@@ -529,6 +562,7 @@ function renderAll(){
 }
 function go(name){
   if(name==="refresh"){ openRefresh(); return; }
+  closeTm();
   closeRefresh(true);
   if(S.screen!=="full"&&S.screen!=="saver") S.prev=S.screen;
   S.screen=name;
@@ -574,6 +608,7 @@ function exitApp(){
   setTimeout(()=>{st.style.opacity="1";go("home");},1200);
 }
 function back(){
+  if(!$("#tmenu").hidden) return tmBack();
   if(!$("#refresh").hidden){ if(dlgMode==="exit"){ closeRefresh(true); exitApp(); return; } return closeRefresh(false); }
   if(S.screen==="full") return go("guide");
   if(S.screen==="guide"&&S.query){S.query="";renderGuide();setFocus($("#srch"));return;}
@@ -596,6 +631,8 @@ function activate(el){
   else if(a==="editsrc"){const i=+el.dataset.i;S.editing=i;renderSettings();const f=$(`.field[data-i="${i}"]`);setFocus(f);const inp=$("#srcin");inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length);}
   else if(a==="resetsrc"){S.src=[...DEF_SRC];S.editing=null;renderSettings();setFocus($('[data-act="resetsrc"]'));}
   else if(a==="dlgOk") dialogOk();
+  else if(a==="tm-open") {TM.level=el.dataset.k;renderTm();}
+  else if(a==="tm-pick") {if(TM.level==="subs")S.subs=el.dataset.v;else S.prefAudio=el.dataset.v;const lv=TM.level;TM.level="top";renderTm(lv);updateCaptions();}
   else if(a==="back") back();
 }
 /* spatial navigation: nearest focusable in the pressed direction */
@@ -625,6 +662,50 @@ function drift(){ clearInterval(driftT); const f=$("#float"); const place=()=>{f
 function openSearch(){S.searching=true;const sb=$("#srch");sb.innerHTML=`🔍 <input id="srchin" value="${S.query.replace(/"/g,"&quot;")}">`;const i=$("#srchin");i.focus();i.addEventListener("input",()=>{S.query=i.value.trim();renderGuide();});}
 function openEdSearch(){S.esearching=true;const sb=$("#esrch");sb.innerHTML=`🔍 <input id="esrchin" value="${S.equery.replace(/"/g,"&quot;")}">`;const i=$("#esrchin");i.focus();i.addEventListener("input",()=>{S.equery=i.value.trim();renderEditor();});}
 function closeSearch(goList){S.searching=false;vp.focus({preventScroll:true});renderGuide();if(goList&&$("#glist [data-f]"))setFocus($("#glist [data-f]"));else setFocus($("#srch"));}
+/* ---------- subtitles & audio (Menu button) ---------- */
+// Example tracks; real streams report theirs to the player. Most channels have one audio track and no subtitles.
+const TRACKS={"AXN (Brazil)":{audio:["por","eng"],subs:["por","eng"]},"Arte 1":{audio:["por","eng"],subs:["por"]},
+  "CNN Brasil":{audio:["por"],subs:["por"]},"GloboNews":{audio:["por"],subs:["por"]},"TNT Novelas Brazil":{audio:["por","spa"],subs:["spa"]}};
+const tracksOf=n=>TRACKS[n]||{audio:["por"],subs:[]};
+const LN=c=>T("langs")[c]||c;
+function effAudio(n){const a=tracksOf(n).audio;return a.includes(S.prefAudio)?S.prefAudio:a[0]}
+function effSubs(n){const s=tracksOf(n).subs;return S.subs!=="off"&&s.includes(S.subs)?S.subs:"off"}
+const TM={level:"top",timer:null};
+function canMenu(){return (S.screen==="guide"&&S.playing&&!tuneTimer)||S.screen==="full"}
+function toggleTrackMenu(){ if(!$("#tmenu").hidden) return closeTm(); if(!canMenu()||!$("#refresh").hidden) return; TM.level="top"; $("#tmenu").hidden=false; renderTm(); armTmClose(); renderNote("menu"); }
+function closeTm(){ const m=$("#tmenu"); if(!m||m.hidden) return; m.hidden=true; clearTimeout(TM.timer);
+  const back=S.screen==="guide"?$(`#glist [data-name="${CSS.escape(S.playing||"")}"]`):null;
+  if(back) setFocus(back); else {$$(".stage .focus").forEach(e=>e.classList.remove("focus"));focused=null;}
+  renderNote(S.screen); }
+function tmBack(){ if(TM.level!=="top"){const lv=TM.level;TM.level="top";renderTm(lv);} else closeTm(); }
+function armTmClose(){ clearTimeout(TM.timer); TM.timer=setTimeout(closeTm,10000); }
+function renderTm(focusKey){
+  const n=S.playing, tr=tracksOf(n), m=$("#tmenu");
+  if(TM.level==="top"){
+    const subsVal=tr.subs.length?(effSubs(n)==="off"?T("subsOff"):LN(effSubs(n))):T("notAvail");
+    const audVal=LN(effAudio(n))+(tr.audio.length<2?` · ${T("oneTrack")}`:"");
+    m.innerHTML=`<h3>${T("mTitle")}</h3><p class="sub">${n}</p>
+      <div class="trow ${tr.subs.length?"":"dis"}" ${tr.subs.length?"data-f":""} data-act="tm-open" data-k="subs">${T("mSubs")}<span>${subsVal}${tr.subs.length?" ›":""}</span></div>
+      <div class="trow ${tr.audio.length>1?"":"dis"}" ${tr.audio.length>1?"data-f":""} data-act="tm-open" data-k="audio">${T("mAudio")}<span>${audVal}${tr.audio.length>1?" ›":""}</span></div>
+      <div class="foot">${T("mFoot")}</div>`;
+    const f=focusKey?m.querySelector(`[data-k="${focusKey}"][data-f]`):null;
+    const any=f||m.querySelector("[data-f]");
+    if(any) setFocus(any); else {$$(".stage .focus").forEach(e=>e.classList.remove("focus"));focused=null;}
+  } else {
+    const isSubs=TM.level==="subs", cur=isSubs?effSubs(n):effAudio(n);
+    const opts=isSubs?["off",...tr.subs]:tr.audio;
+    m.innerHTML=`<h3>${isSubs?T("mSubs"):T("mAudio")}</h3><p class="sub">${n}</p>`+
+      opts.map(v=>`<div class="trow" data-f data-act="tm-pick" data-v="${v}"><span class="tmark">${v===cur?"✓":""}</span><b style="flex:1;font-weight:400">${v==="off"?T("subsOff"):LN(v)}</b></div>`).join("")+
+      `<div class="foot">${T("mFoot")}</div>`;
+    setFocus(m.querySelector(`[data-v="${cur}"]`)||m.querySelector("[data-f]"));
+  }
+}
+const CAPTXT={por:"— Boa noite, e bem-vindos ao programa.",eng:"— Good evening, and welcome to the show.",spa:"— Buenas noches y bienvenidos al programa."};
+function updateCaptions(){
+  const n=S.playing, s=n?effSubs(n):"off";
+  const px={sys:46,s:34,m:46,l:62}[S.subSize];
+  [["#fcap",1],["#cap",0.42]].forEach(([id,k])=>{const c=$(id); if(!c) return; c.hidden=s==="off"; c.textContent=CAPTXT[s]||""; c.style.fontSize=Math.round(px*k)+"px";});
+}
 const vp=$("#vp");
 vp.addEventListener("keydown",e=>{
   if(e.target.id==="esrchin"){
@@ -643,6 +724,8 @@ vp.addEventListener("keydown",e=>{
     return;
   }
   const k={ArrowLeft:"left",ArrowRight:"right",ArrowUp:"up",ArrowDown:"down"}[e.key];
+  if(e.key==="m"||e.key==="M"||e.key==="ContextMenu"){e.preventDefault();toggleTrackMenu();return}
+  if(!$("#tmenu").hidden) armTmClose();
   if(S.screen==="saver"){e.preventDefault();back();return}
   if(S.screen==="guide"&&(e.key==="PageUp"||e.key==="PageDown"||e.key===","||e.key===".")){e.preventDefault();jumpLetter(e.key==="PageDown"||e.key===".");return}
   if(k){e.preventDefault();move(k)} else if(e.key==="Enter"||e.key===" "){e.preventDefault();activate(focused)}
@@ -663,6 +746,7 @@ const NOTES={
  settings:["Settings","Switch Language to Português: every screen and dialog in this preview, and in the app, changes language. Channel names stay as the broadcaster writes them.","Channel sources: press OK on an address to type a new one (the Fire TV keyboard opens; here, type and press Enter, or Esc to cancel). Each slot accepts an M3U playlist link or a famelack country page."],
  editor:["Channel Editor","New: 🔍 Search, the same as in Live TV. Type a few letters to find a channel among all ~400; Enter goes to the results, Back clears the search. The category · quality · source column now stays on one line; long channel names are shortened instead.","Every channel in the local copy, with a show/hide switch and the source it came from. Geo-blocked channels start hidden, marked with a crossed-out globe."],
  refresh:["Refresh Channels","Asks before replacing the local file. Hidden choices carry over for channels that still exist in the new list. If either source fails to download, the current list is kept."],
+ menu:["Subtitles and audio","Opened with the ☰ Menu button (M here) while a channel plays in Live TV, in the preview box or full screen. Up/Down move inside the menu, OK opens a list and picks, Back goes up a level and then closes it. It also closes after 10 seconds without a key press.","Try AXN (Brazil): two audio tracks and two subtitle languages. GloboNews and CNN Brasil have Portuguese subtitles only. Rede Globo shows how a channel with nothing to choose looks.","Your choices are remembered for every channel: pick English audio once and channels that offer English start in English; subtitles stay on until you turn them off. Subtitle size is in Settings › Subtitles."],
  exit:["Exit confirmation","Back on the home screen asks before closing. Cancel is selected first; pressing Back again exits."],
  saver:["Screen saver","Shows the home screen's photo, darkened, with the clock and date on top. The clock moves every 20 seconds and the photo changes every 10 minutes. Any button wakes it. It never starts while a channel is playing.","The scene here is a drawn stand-in for a real photo."]
 };

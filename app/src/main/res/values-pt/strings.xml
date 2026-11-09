@@ -27,11 +27,11 @@
     <string name="press_ok">Pressione OK para assistir aqui. OK de novo para tela cheia. ⏪ ⏩ pula por letra.</string>
     <string name="nothing_playing">Nada tocando ainda</string>
     <string name="tuning">Sintonizando %1$s…</string>
-    <string name="playing">Tocando com som. Pressione OK de novo para tela cheia.</string>
+    <string name="playing">Tocando com som. OK de novo para tela cheia · ☰ legendas e áudio.</string>
     <string name="stream_failed">%1$s não está disponível agora. Tente outro canal.</string>
     <string name="now_playing">● Tocando</string>
     <string name="channel_count">%1$d canais</string>
-    <string name="fullscreen_hint">Cima / Baixo troca de canal · Voltar retorna</string>
+    <string name="fullscreen_hint">Cima / Baixo troca de canal · ☰ legendas e áudio · Voltar retorna</string>
     <string name="geo_blocked">Bloqueio regional</string>
     <string name="not_247">Não é 24h</string>
     <string name="cat_novelas">Novelas</string>
@@ -82,4 +82,19 @@
     <string name="search_hint">Buscar</string>
     <string name="search_results">Busca: “%1$s” (%2$d)</string>
     <string name="search_none">Nenhum canal com “%1$s”. Pressione Voltar para limpar a busca.</string>
+    <string name="s_subs">Legendas</string>
+    <string name="hint_subs">Tamanho das legendas ao assistir. “Seguir configurações do Fire TV” usa o estilo de legendas do próprio Fire TV (Configurações › Acessibilidade › Legendas). Ligue as legendas com o botão ☰ Menu enquanto um canal está passando.</string>
+    <string name="size_sys">Seguir configurações do Fire TV</string>
+    <string name="size_s">Pequena</string>
+    <string name="size_m">Média</string>
+    <string name="size_l">Grande</string>
+    <string name="menu_title">Legendas e áudio</string>
+    <string name="menu_subs">Legendas</string>
+    <string name="menu_audio">Áudio</string>
+    <string name="subs_off">Desligadas</string>
+    <string name="not_available">Não disponível</string>
+    <string name="one_track">Só uma faixa</string>
+    <string name="menu_foot">OK seleciona · Voltar volta · fecha sozinho após 10 segundos</string>
+    <string name="cc">CC</string>
+    <string name="track_n">Faixa %1$d</string>
 </resources>

@@ -14,7 +14,13 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.annotation.OptIn
+import androidx.media3.common.C
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.ui.CaptionStyleCompat
+import androidx.media3.ui.SubtitleView
 import androidx.activity.OnBackPressedCallback
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.ui.PlayerView
@@ -27,6 +33,7 @@ import com.vanisetv.app.data.Sources
 import kotlinx.coroutines.launch
 import java.util.Date
 
+@OptIn(UnstableApi::class)
 class GuideActivity : BaseActivity(), TvPlayer.Callback {
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var player: TvPlayer
@@ -262,6 +269,7 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
     // ---------------- player callbacks ----------------
 
     override fun onTuning(channel: Channel) {
+        closeMenu()
         videoMsgBox.visibility = View.VISIBLE
         videoSpinner.visibility = View.VISIBLE
         videoMsg.text = getString(R.string.tuning, channel.name)
@@ -325,6 +333,172 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
 
     private val hideBanner = Runnable { banner.visibility = View.GONE }
 
+    // ---------------- subtitles & audio menu (☰ Menu) ----------------
+
+    private val menuPanel: View by lazy { findViewById(R.id.trackMenu) }
+    private val menuRowsBox: LinearLayout by lazy { findViewById(R.id.tmRows) }
+    private var menuRows: List<View> = emptyList()
+    private var menuIndex = 0
+    private var menuLevel = 0          // 0 = top, else C.TRACK_TYPE_TEXT / C.TRACK_TYPE_AUDIO
+    private var swallowBackUp = false
+    private val menuOpen: Boolean get() = menuPanel.visibility == View.VISIBLE
+
+    private fun openMenu() {
+        menuPanel.visibility = View.VISIBLE
+        handler.removeCallbacks(hideBanner)
+        renderMenuTop(null)
+        armMenuClose()
+    }
+
+    private fun closeMenu() {
+        if (!::player.isInitialized || !menuOpen) return
+        menuPanel.visibility = View.GONE
+        handler.removeCallbacks(autoCloseMenu)
+        if (!fullscreen) (player.current ?: player.pending)?.let { focusChannel(it) }
+    }
+
+    private fun menuBack() { if (menuLevel != 0) renderMenuTop(menuLevel) else closeMenu() }
+
+    private val autoCloseMenu = Runnable { closeMenu() }
+    private fun armMenuClose() {
+        handler.removeCallbacks(autoCloseMenu)
+        handler.postDelayed(autoCloseMenu, 10_000)
+    }
+
+    private fun moveMenu(step: Int) {
+        if (menuRows.isEmpty()) return
+        menuIndex = (menuIndex + step).coerceIn(0, menuRows.size - 1)
+        menuRows[menuIndex].requestFocus()
+    }
+
+    /** Language name in the app's language ("Inglês", "English"); "CC" / "Track 2" when unknown. */
+    private fun trackLabel(o: TvPlayer.TrackOption, all: List<TvPlayer.TrackOption>, position: Int): String {
+        val locale = Formats.locale(app.prefs.lang)
+        val base = o.language?.let { java.util.Locale.forLanguageTag(it).getDisplayLanguage(locale) }
+            ?.takeIf { it.isNotBlank() }?.replaceFirstChar { it.titlecase(locale) }
+            ?: o.format.label?.takeIf { it.isNotBlank() }
+            ?: if (o.group.type == C.TRACK_TYPE_TEXT) getString(R.string.cc) else getString(R.string.track_n, position + 1)
+        // Tell apart tracks that share a language.
+        val same = all.filter { it.language == o.language }
+        if (same.size < 2) return base
+        return when {
+            o.format.channelCount >= 6 -> "$base (5.1)"
+            !o.format.label.isNullOrBlank() && o.format.label != base -> "$base (${o.format.label})"
+            else -> "$base ${same.indexOf(o) + 1}"
+        }
+    }
+
+    private fun renderMenuTop(focusType: Int?) {
+        menuLevel = 0
+        findViewById<TextView>(R.id.tmTitle).setText(R.string.menu_title)
+        findViewById<TextView>(R.id.tmChannel).text = player.current?.name ?: ""
+        val subs = player.options(C.TRACK_TYPE_TEXT)
+        val audio = player.options(C.TRACK_TYPE_AUDIO)
+        val subsValue = when {
+            subs.isEmpty() -> getString(R.string.not_available)
+            else -> subs.indexOfFirst { it.selected }.let { i -> if (i < 0) getString(R.string.subs_off) else trackLabel(subs[i], subs, i) }
+        }
+        val audioSel = audio.indexOfFirst { it.selected }.coerceAtLeast(0)
+        val audioValue = when {
+            audio.isEmpty() -> getString(R.string.not_available)
+            audio.size == 1 -> "${trackLabel(audio[0], audio, 0)} · ${getString(R.string.one_track)}"
+            else -> trackLabel(audio[audioSel], audio, audioSel)
+        }
+        menuRowsBox.removeAllViews()
+        val rows = ArrayList<View>()
+        val subsRow = addMenuRow(getString(R.string.menu_subs), subsValue, null, enabled = subs.isNotEmpty()) { renderMenuList(C.TRACK_TYPE_TEXT) }
+        val audioRow = addMenuRow(getString(R.string.menu_audio), audioValue, null, enabled = audio.size > 1) { renderMenuList(C.TRACK_TYPE_AUDIO) }
+        if (subs.isNotEmpty()) rows += subsRow
+        if (audio.size > 1) rows += audioRow
+        menuRows = rows
+        menuIndex = when (focusType) {
+            C.TRACK_TYPE_AUDIO -> rows.indexOf(audioRow)
+            C.TRACK_TYPE_TEXT -> rows.indexOf(subsRow)
+            else -> 0
+        }.coerceAtLeast(0)
+        if (rows.isEmpty()) menuPanel.requestFocus() else rows[menuIndex].requestFocus()
+    }
+
+    private fun renderMenuList(type: Int) {
+        menuLevel = type
+        val isText = type == C.TRACK_TYPE_TEXT
+        findViewById<TextView>(R.id.tmTitle).setText(if (isText) R.string.menu_subs else R.string.menu_audio)
+        val opts = player.options(type)
+        menuRowsBox.removeAllViews()
+        val rows = ArrayList<View>()
+        var sel = 0
+        if (isText) {
+            val off = opts.none { it.selected }
+            rows += addMenuRow(getString(R.string.subs_off), null, off, enabled = true) {
+                player.subtitlesOff(); app.prefs.subsLang = "off"; afterPick(type)
+            }
+        }
+        opts.forEachIndexed { i, o ->
+            if (o.selected) sel = rows.size
+            rows += addMenuRow(trackLabel(o, opts, i), null, o.selected, enabled = true) {
+                player.select(o)
+                if (isText) app.prefs.subsLang = o.language ?: "und" else app.prefs.audioLang = o.language ?: ""
+                afterPick(type)
+            }
+        }
+        menuRows = rows
+        menuIndex = sel
+        rows.getOrNull(sel)?.requestFocus()
+    }
+
+    /** Back to the top level; the player applies the change a moment later, so refresh again then. */
+    private fun afterPick(type: Int) {
+        renderMenuTop(type)
+        handler.postDelayed({ if (menuOpen && menuLevel == 0) renderMenuTop(type) }, 300)
+    }
+
+    private fun addMenuRow(label: String, value: String?, checked: Boolean?, enabled: Boolean, onClick: () -> Unit): View {
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setBackgroundResource(R.drawable.bg_menu)
+            isFocusable = enabled
+            isClickable = enabled
+            alpha = if (enabled) 1f else 0.5f
+            setPadding(dp(16), dp(12), dp(16), dp(12))
+            setOnClickListener { onClick() }
+        }
+        if (checked != null) row.addView(TextView(this).apply {
+            text = if (checked) "✓" else ""
+            textSize = 17f
+            setTextColor(getColor(R.color.focus))
+        }, LinearLayout.LayoutParams(dp(26), LinearLayout.LayoutParams.WRAP_CONTENT))
+        row.addView(TextView(this).apply {
+            text = label; textSize = 17f; isDuplicateParentStateEnabled = true
+            setTextColor(getColorStateList(R.color.row_text))
+        }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        if (value != null) row.addView(TextView(this).apply {
+            text = if (enabled) "$value  ›" else value
+            textSize = 14f; isDuplicateParentStateEnabled = true
+            setTextColor(getColorStateList(R.color.row_text_muted))
+        })
+        menuRowsBox.addView(row, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { bottomMargin = dp(8) })
+        return row
+    }
+
+    /** Subtitle size: Fire TV's own caption settings, or a fixed Small / Medium / Large. */
+    private fun applySubtitleStyle() {
+        val sv = findViewById<PlayerView>(R.id.playerView).subtitleView ?: return
+        when (val size = app.prefs.subSize) {
+            "sys" -> { sv.setUserDefaultStyle(); sv.setUserDefaultTextSize() }
+            else -> {
+                sv.setStyle(CaptionStyleCompat.DEFAULT)
+                val f = when (size) { "s" -> 0.75f; "l" -> 1.35f; else -> 1f }
+                sv.setFractionalTextSize(SubtitleView.DEFAULT_TEXT_SIZE_FRACTION * f)
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        applySubtitleStyle()
+    }
+
     private fun zap(step: Int) {
         val list = channels
         if (list.isEmpty()) return
@@ -335,6 +509,30 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        // The Back that closed the menu must not also leave full screen when the key is released.
+        if (swallowBackUp && event.keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
+            swallowBackUp = false
+            return true
+        }
+        if (menuOpen) {
+            if (event.action == KeyEvent.ACTION_DOWN) {
+                armMenuClose()
+                when (event.keyCode) {
+                    KeyEvent.KEYCODE_DPAD_UP -> moveMenu(-1)
+                    KeyEvent.KEYCODE_DPAD_DOWN -> moveMenu(1)
+                    KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> menuRows.getOrNull(menuIndex)?.performClick()
+                    KeyEvent.KEYCODE_BACK -> { swallowBackUp = true; menuBack() }
+                    KeyEvent.KEYCODE_MENU -> closeMenu()
+                }
+            }
+            return true   // nothing else reacts while the menu is open
+        }
+        if (event.keyCode == KeyEvent.KEYCODE_MENU && ready) {
+            if (event.action == KeyEvent.ACTION_DOWN) {
+                if (player.current != null && !player.isTuning) openMenu() else if (fullscreen) showBanner()
+            }
+            return true
+        }
         val isJumpKey = event.keyCode == KeyEvent.KEYCODE_MEDIA_REWIND || event.keyCode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD
         if (isJumpKey && !fullscreen && ready) {
             if (event.action == KeyEvent.ACTION_DOWN) jumpLetter(event.keyCode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD)
@@ -345,7 +543,7 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
                 KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_CHANNEL_UP -> { zap(-1); return true }
                 KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_CHANNEL_DOWN -> { zap(1); return true }
                 KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_DPAD_LEFT,
-                KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_MENU -> { showBanner(); return true }
+                KeyEvent.KEYCODE_DPAD_RIGHT -> { showBanner(); return true }
             }
         }
         return super.dispatchKeyEvent(event)

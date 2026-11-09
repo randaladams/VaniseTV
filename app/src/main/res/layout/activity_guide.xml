@@ -241,4 +241,58 @@
                 android:textSize="30sp" />
         </LinearLayout>
     </FrameLayout>
+
+    <!-- Subtitles & audio menu: ☰ Menu while a channel plays. Built in GuideActivity. -->
+    <FrameLayout
+        android:id="@+id/trackMenu"
+        android:layout_width="340dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:background="#F20C1620"
+        android:elevation="12dp"
+        android:paddingStart="24dp"
+        android:paddingTop="32dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="22dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tmTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/fg"
+                android:textSize="22sp" />
+
+            <TextView
+                android:id="@+id/tmChannel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="18dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/muted"
+                android:textSize="14sp" />
+
+            <LinearLayout
+                android:id="@+id/tmRows"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:text="@string/menu_foot"
+            android:textColor="@color/muted"
+            android:textSize="12sp" />
+    </FrameLayout>
 </FrameLayout>

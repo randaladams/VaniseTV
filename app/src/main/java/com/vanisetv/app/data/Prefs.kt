@@ -42,6 +42,21 @@ class Prefs(context: Context) {
         get() = sp.getString("srcStats", "") ?: ""
         set(v) = sp.edit().putString("srcStats", v).apply()
 
+    /** Preferred audio language (BCP 47, e.g. "en"); empty = the stream's default track. */
+    var audioLang: String
+        get() = sp.getString("audioLang", "") ?: ""
+        set(v) = sp.edit().putString("audioLang", v).apply()
+
+    /** "off", a subtitle language (e.g. "pt"), or "und" for subtitles with no language (CC). */
+    var subsLang: String
+        get() = sp.getString("subsLang", "off") ?: "off"
+        set(v) = sp.edit().putString("subsLang", v).apply()
+
+    /** Subtitle size: "sys" follows the Fire TV caption settings, or "s", "m", "l". */
+    var subSize: String
+        get() = sp.getString("subSize", "sys") ?: "sys"
+        set(v) = sp.edit().putString("subSize", v).apply()
+
     var lastBackgroundFetch: Long
         get() = sp.getLong("lastBg", 0L)
         set(v) = sp.edit().putLong("lastBg", v).apply()
