@@ -150,6 +150,7 @@ kbd{font:500 12px var(--f-ui);border:1px solid var(--page-line);border-bottom-wi
 
 /* refresh dialog */
 .scrim{position:absolute;inset:0;background:rgba(5,10,14,.78);display:grid;place-items:center}
+.stage [hidden]{display:none!important}
 .dialog{width:1100px;background:var(--tv-panel);border-radius:24px;padding:60px 70px;border:2px solid var(--tv-line)}
 .dialog h2{margin:0 0 16px;font-size:54px;font-weight:500}
 .dialog p{font-size:32px;color:#c6d3dc;margin:0 0 14px;font-family:var(--f-body)}
@@ -419,7 +420,7 @@ function renderEditor(){
 /* ---------- screens & focus ---------- */
 let focused=null;
 function setFocus(el){
-  if(!el) return; if(focused) focused.classList.remove("focus");
+  if(!el) return; $$(".stage .focus").forEach(e=>e.classList.remove("focus"));
   focused=el; el.classList.add("focus");
   el.scrollIntoView({block:"nearest"});
   if(S.screen==="guide" && el.dataset.name) showInfo(CH.find(c=>c.name===el.dataset.name));
