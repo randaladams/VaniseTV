@@ -64,6 +64,10 @@ kbd{font:500 12px var(--f-ui);border:1px solid var(--page-line);border-bottom-wi
 .g-info{position:absolute;left:96px;top:64px;width:900px}
 .chip{display:inline-block;font-size:28px;padding:8px 26px;border-radius:999px;background:#3a5162;cursor:pointer}
 .chip.focus{background:#516b7e}
+.srch{margin-left:16px;min-width:230px;color:var(--tv-muted)}
+.srch.has{color:var(--tv-fg)}
+.srch input{font:inherit;font-size:28px;background:transparent;border:0;outline:none;color:var(--tv-fg);width:300px}
+.letter{position:absolute;left:50%;bottom:150px;transform:translateX(-50%);width:200px;height:200px;border-radius:20px;background:var(--tv-panel);border:2px solid var(--tv-line);display:grid;place-items:center;font-size:120px;font-weight:500;color:var(--tv-focus);box-shadow:0 20px 50px rgba(0,0,0,.6)}
 .g-info h2{font-size:64px;font-weight:500;margin:28px 0 6px;line-height:1.1}
 .g-meta{font-size:30px;color:var(--tv-muted);display:flex;gap:16px;align-items:center;flex-wrap:wrap}
 .tag{border:2px solid var(--tv-muted);border-radius:6px;padding:0 10px;font-size:24px}
@@ -210,7 +214,7 @@ kbd{font:500 12px var(--f-ui);border:1px solid var(--page-line);border-bottom-wi
         <!-- LIVE TV GUIDE -->
         <section class="screen" id="s-guide">
           <div class="g-info">
-            <div class="chip" data-f data-act="cat" id="cat"></div>
+            <div class="chip" data-f data-act="cat" id="cat"></div><div class="chip srch" data-f data-act="search" id="srch"></div>
             <h2 id="g-name">Rede Globo</h2>
             <div class="g-meta" id="g-meta"></div>
             <div class="g-status" id="g-status"></div>
@@ -221,6 +225,7 @@ kbd{font:500 12px var(--f-ui);border:1px solid var(--page-line);border-bottom-wi
             <div class="vbadge"><svg width="30" height="30" viewBox="0 0 64 64"><path d="M10 24h10l14-12v40L20 40H10z" fill="#fff"/><path d="M44 22a14 14 0 0 1 0 20M50 14a24 24 0 0 1 0 36" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/></svg><span id="vlabel"></span></div>
           </div>
           <div class="g-list" id="glist"></div>
+          <div class="letter" id="letter" hidden></div>
         </section>
 
         <!-- FULLSCREEN -->
@@ -308,7 +313,7 @@ const CH=[
 const watch={"Rede Globo":["#1",41],"GloboNews":["#2",23],"Record":["#3",9]};
 const CATS=["all","Novelas","News","General","Entertainment","Sports","Kids","Series","Other"];
 const DEF_SRC=["https://iptv-org.github.io/iptv/countries/br.m3u","https://famelack.com/tv/br"];
-const S={src:[...DEF_SRC],editing:null,style:"br",lang:"en",clicks:true,saver:10,screen:"home",prev:"home",playing:null,cat:0,panel:"time"};
+const S={query:"",searching:false,src:[...DEF_SRC],editing:null,style:"br",lang:"en",clicks:true,saver:10,screen:"home",prev:"home",playing:null,cat:0,panel:"time"};
 
 /* ---------- every on-screen text, in both languages (mirrors the app string files) ---------- */
 const TX={
@@ -331,7 +336,8 @@ const TX={
    aBySrcVal:(a,b)=>`Source 1: ${a} · Source 2: ${b}`,aDownloaded:"Channel list downloaded",
    allCh:"All channels",chCount:n=>`${n} channels`,
    groups:{Novelas:"Novelas",News:"News",General:"General",Entertainment:"Entertainment",Sports:"Sports",Kids:"Kids",Series:"Series",Other:"Other",Education:"Education",Religious:"Religious",Outdoor:"Outdoor"},
-   pressOk:"Press OK to watch here. Press OK again for full screen.",nothing:"Nothing playing yet",
+   search:"Search",searchRes:(q,n)=>`Search: “${q}” (${n})`,searchNone:q=>`No channels match “${q}”. Press Back to clear the search.`,
+   pressOk:"Press OK to watch here. Press OK again for full screen. ⏪ ⏩ jump by letter.",nothing:"Nothing playing yet",
    tuning:n=>`Tuning to ${n}…`,playing:"Playing with sound. Press OK again for full screen.",
    nowPlaying:"● Playing",liveSound:n=>`LIVE · ${n} · sound on`,fsHint:"Up / Down changes channel · Back returns",
    geo:"Geo-blocked",not247:"Not 24/7",
@@ -362,7 +368,8 @@ const TX={
    aBySrcVal:(a,b)=>`Fonte 1: ${a} · Fonte 2: ${b}`,aDownloaded:"Lista de canais baixada",
    allCh:"Todos os canais",chCount:n=>`${n} canais`,
    groups:{Novelas:"Novelas",News:"Notícias",General:"Geral",Entertainment:"Entretenimento",Sports:"Esportes",Kids:"Infantil",Series:"Séries",Other:"Outros",Education:"Educação",Religious:"Religioso",Outdoor:"Ar livre"},
-   pressOk:"Pressione OK para assistir aqui. OK de novo para tela cheia.",nothing:"Nada tocando ainda",
+   search:"Buscar",searchRes:(q,n)=>`Busca: “${q}” (${n})`,searchNone:q=>`Nenhum canal com “${q}”. Pressione Voltar para limpar a busca.`,
+   pressOk:"Pressione OK para assistir aqui. OK de novo para tela cheia. ⏪ ⏩ pula por letra.",nothing:"Nada tocando ainda",
    tuning:n=>`Sintonizando ${n}…`,playing:"Tocando com som. Pressione OK de novo para tela cheia.",
    nowPlaying:"● Tocando",liveSound:n=>`AO VIVO · ${n} · com som`,fsHint:"Cima / Baixo troca de canal · Voltar retorna",
    geo:"Bloqueio regional",not247:"Não é 24h",
@@ -406,11 +413,22 @@ function renderHome(){
 }
 
 /* ---------- guide ---------- */
-function guideRows(){const cat=CATS[S.cat];return CH.filter(c=>c.shown&&(cat==="all"||(cat==="Novelas"?/novela/i.test(c.name):c.group===cat)))}
+const norm=s=>s.normalize("NFD").replace(/\p{Mn}+/gu,"").toLowerCase().replace(/[^a-z0-9]/g,"");
+function guideRows(){const cat=CATS[S.cat];const q=norm(S.query);
+  const rows=q?CH.filter(c=>c.shown&&norm(c.name).includes(q)):CH.filter(c=>c.shown&&(cat==="all"||(cat==="Novelas"?/novela/i.test(c.name):c.group===cat)));
+  return rows.sort((a,b)=>norm(a.name)<norm(b.name)?-1:1)}
+const letterOf=c=>{const f=norm(c.name)[0]||"#";return /[a-z]/.test(f)?f.toUpperCase():"#"};
+function jumpLetter(fwd){const rows=guideRows();if(!rows.length)return;let pos=Math.max(0,rows.findIndex(c=>focused&&c.name===focused.dataset.name));
+  const gs=i=>{const l=letterOf(rows[i]);while(i>0&&letterOf(rows[i-1])===l)i--;return i};let t;
+  if(fwd){const cur=letterOf(rows[pos]);t=rows.findIndex((c,i)=>i>pos&&letterOf(c)!==cur);if(t<0)t=0}
+  else{const s=gs(pos);t=s<pos?s:pos===0?gs(rows.length-1):gs(pos-1)}
+  setFocus($(`#glist [data-name="${CSS.escape(rows[t].name)}"]`));const L=$("#letter");L.textContent=letterOf(rows[t]);L.hidden=false;clearTimeout(jumpLetter.t);jumpLetter.t=setTimeout(()=>L.hidden=true,900)}
 const srcBadge=c=>`<div class="srcb ${c.src===2?"s2":""}" title="${T("source")(c.src)}">${c.src}</div>`;
 function renderGuide(){
   const rows=guideRows();
-  $("#cat").textContent=`‹  ${catLabel(CATS[S.cat])} · ${T("chCount")(rows.length)}  ›`;
+  $("#cat").textContent=S.query?T("searchRes")(S.query,rows.length):`‹  ${catLabel(CATS[S.cat])} · ${T("chCount")(rows.length)}  ›`;
+  const sb=$("#srch");if(!S.searching){sb.innerHTML=`🔍 ${S.query||T("search")}`;sb.classList.toggle("has",!!S.query);}
+  if(S.query&&!rows.length){$("#g-status").textContent=T("searchNone")(S.query);}
   $("#glist").innerHTML=rows.map(c=>`<div class="row" data-f data-act="tune" data-name="${c.name}">${logo(c)}<div>${c.name}${S.playing===c.name?`<span class="now">${T("nowPlaying")}</span>`:""}</div><div class="grp">${G(c.group)}</div><div class="q">${c.q}</div>${srcBadge(c)}</div>`).join("");
   if(!S.playing&&!tuneTimer){$("#vmsg").textContent=T("nothing");$("#g-status").textContent=T("pressOk");}
   else if(S.playing&&!tuneTimer){$("#g-status").textContent=T("playing");$("#vlabel").textContent=T("liveSound")(S.playing);}
@@ -551,6 +569,7 @@ function exitApp(){
 function back(){
   if(!$("#refresh").hidden){ if(dlgMode==="exit"){ closeRefresh(true); exitApp(); return; } return closeRefresh(false); }
   if(S.screen==="full") return go("guide");
+  if(S.screen==="guide"&&S.query){S.query="";renderGuide();setFocus($("#srch"));return;}
   if(S.screen==="saver") return go(S.prev||"home");
   if(S.screen!=="home") return go("home");
   showDialog("exit");
@@ -561,7 +580,8 @@ function activate(el){
   if(a==="guide"||a==="settings"||a==="editor"||a==="refresh") go(a);
   else if(a==="play") openFull(el.dataset.name);
   else if(a==="tune") tune(el.dataset.name);
-  else if(a==="cat"){S.cat=(S.cat+1)%CATS.length;renderGuide();}
+  else if(a==="cat"){S.query="";S.cat=(S.cat+1)%CATS.length;renderGuide();}
+  else if(a==="search"){openSearch();}
   else if(a==="set"){S[el.dataset.k]=JSON.parse(el.dataset.v);renderAll();setFocus($(`.opt[data-k="${el.dataset.k}"][data-v='${el.dataset.v}']`));}
   else if(a==="toggle"){const c=CH.find(x=>x.name===el.dataset.name);c.shown=!c.shown;renderEditor();setFocus($(`#elist [data-name="${CSS.escape(c.name)}"]`));}
   else if(a==="editsrc"){const i=+el.dataset.i;S.editing=i;renderSettings();const f=$(`.field[data-i="${i}"]`);setFocus(f);const inp=$("#srcin");inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length);}
@@ -573,7 +593,7 @@ function activate(el){
 function move(dir){
   const items=[...scope().querySelectorAll("[data-f]")].filter(e=>e.offsetParent!==null);
   if(!focused){setFocus(items[0]);return}
-  if(S.screen==="guide"&&focused.id==="cat"&&(dir==="left"||dir==="right")){S.cat=(S.cat+(dir==="right"?1:CATS.length-1))%CATS.length;renderGuide();click(false);return}
+  if(S.screen==="guide"&&focused.id==="cat"&&(dir==="left"||dir==="right")){S.query="";S.cat=(S.cat+(dir==="right"?1:CATS.length-1))%CATS.length;renderGuide();click(false);return}
   const r=focused.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/2;
   let best=null,score=1e9;
   for(const e of items){ if(e===focused) continue;
@@ -593,8 +613,14 @@ function click(strong){ if(!S.clicks) return; try{ ac=ac||new (window.AudioConte
 let driftT=null;
 function drift(){ clearInterval(driftT); const f=$("#float"); const place=()=>{f.style.left=(120+Math.random()*1200)+"px";f.style.top=(120+Math.random()*640)+"px";}; place(); driftT=setInterval(()=>{if(S.screen==="saver")place();},4000); }
 
+function openSearch(){S.searching=true;const sb=$("#srch");sb.innerHTML=`🔍 <input id="srchin" value="${S.query.replace(/"/g,"&quot;")}">`;const i=$("#srchin");i.focus();i.addEventListener("input",()=>{S.query=i.value.trim();renderGuide();});}
+function closeSearch(goList){S.searching=false;vp.focus({preventScroll:true});renderGuide();if(goList&&$("#glist [data-f]"))setFocus($("#glist [data-f]"));else setFocus($("#srch"));}
 const vp=$("#vp");
 vp.addEventListener("keydown",e=>{
+  if(e.target.id==="srchin"){
+    if(e.key==="Enter"||e.key==="Escape"){e.preventDefault();closeSearch(e.key==="Enter");}
+    return;
+  }
   if(e.target.tagName==="INPUT"){
     if(e.key==="Enter"||e.key==="Escape"){e.preventDefault();const i=S.editing;
       if(e.key==="Enter") S.src[i]=e.target.value.trim();
@@ -603,6 +629,7 @@ vp.addEventListener("keydown",e=>{
   }
   const k={ArrowLeft:"left",ArrowRight:"right",ArrowUp:"up",ArrowDown:"down"}[e.key];
   if(S.screen==="saver"){e.preventDefault();back();return}
+  if(S.screen==="guide"&&(e.key==="PageUp"||e.key==="PageDown"||e.key===","||e.key===".")){e.preventDefault();jumpLetter(e.key==="PageDown"||e.key===".");return}
   if(k){e.preventDefault();move(k)} else if(e.key==="Enter"||e.key===" "){e.preventDefault();activate(focused)}
   else if(e.key==="Escape"||e.key==="Backspace"){e.preventDefault();back()}
 });
@@ -616,7 +643,7 @@ new ResizeObserver(()=>{stage.style.transform=`scale(${vp.clientWidth/1920})`}).
 /* notes under the TV (about the preview, so they stay in English) */
 const NOTES={
  home:["Home","Clock top left, date top right, both large. The first three tiles are your most-watched channels over the last 4 weeks; selecting one opens it straight to full screen. LIVE TV opens the full channel list. Press Back (Esc) here to see the exit confirmation."],
- guide:["Live TV","About 8 channels show at once. The small number at the end of each row is the channel's source (1 = iptv-org, 2 = famelack). Left/Right on the category chip changes category. Nothing streams until you press OK; OK again goes full screen.","Freeze protection: after OK the app waits about 0.9 s for the remote to settle; more presses in that window only change which channel loads. Streams that fail or stall for 15 s are retried once, then reported as unavailable."],
+ guide:["Live TV","New: Search. Press OK on 🔍 Search and type (on the TV the Fire TV keyboard opens); the list narrows as you type and covers all categories, ignoring accents. Try “glo” or “educacao”. Enter goes to the results; Back clears the search.","New: jump by letter. On the Fire TV remote, ⏪ Rewind and ⏩ Fast-forward jump to the previous / next letter; a big letter appears for a moment. In this preview use Page Up / Page Down (or , and .). Lists are now sorted A–Z.","About 8 channels show at once. The small number at the end of each row is the channel's source (1 = iptv-org, 2 = famelack). Left/Right on the category chip changes category. Nothing streams until you press OK; OK again goes full screen.","Freeze protection: after OK the app waits about 0.9 s for the remote to settle; more presses in that window only change which channel loads. Streams that fail or stall for 15 s are retried once, then reported as unavailable."],
  full:["Full screen","The banner shows for a few seconds after a channel change, then hides. Up/Down changes channel. Back returns to the guide with the same channel still playing."],
  settings:["Settings","Switch Language to Português: every screen and dialog in this preview, and in the app, changes language. Channel names stay as the broadcaster writes them.","Channel sources: press OK on an address to type a new one (the Fire TV keyboard opens; here, type and press Enter, or Esc to cancel). Each slot accepts an M3U playlist link or a famelack country page."],
  editor:["Channel Editor","Every channel in the local copy, with a show/hide switch and the source it came from. Geo-blocked channels start hidden, marked with a crossed-out globe."],

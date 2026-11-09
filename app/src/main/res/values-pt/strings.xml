@@ -24,7 +24,7 @@
     <string name="refresh_done">%1$d canais: %2$d da Fonte 1 e %3$d novos da Fonte 2. %4$d duplicados e %5$d só do YouTube foram ignorados. %6$d canais estão ocultos.</string>
     <string name="refresh_failed">O download falhou, então a lista atual foi mantida.</string>
     <string name="all_channels">Todos os canais</string>
-    <string name="press_ok">Pressione OK para assistir aqui. OK de novo para tela cheia.</string>
+    <string name="press_ok">Pressione OK para assistir aqui. OK de novo para tela cheia. ⏪ ⏩ pula por letra.</string>
     <string name="nothing_playing">Nada tocando ainda</string>
     <string name="tuning">Sintonizando %1$s…</string>
     <string name="playing">Tocando com som. Pressione OK de novo para tela cheia.</string>
@@ -79,4 +79,7 @@
     <string name="about_by_source_value">Fonte 1: %1$d · Fonte 2: %2$d</string>
     <string name="refresh_failed_source">Não foi possível baixar a Fonte %1$d, então a lista atual foi mantida. Você pode mudar ou limpar o endereço em Configurações › Fontes de canais.</string>
     <string name="live_badge">AO VIVO</string>
+    <string name="search_hint">Buscar</string>
+    <string name="search_results">Busca: “%1$s” (%2$d)</string>
+    <string name="search_none">Nenhum canal com “%1$s”. Pressione Voltar para limpar a busca.</string>
 </resources>

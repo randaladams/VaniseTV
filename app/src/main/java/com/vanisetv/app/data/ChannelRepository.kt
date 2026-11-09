@@ -70,7 +70,8 @@ class ChannelRepository(private val context: Context, private val prefs: Prefs) 
 
     /** "All", "Novelas" (when present), then every group by size. Only visible channels. */
     fun categories(): List<Category> {
-        val vis = visible
+        // A–Z (ignoring accents and punctuation) so Rewind / Fast-forward can jump by letter.
+        val vis = visible.sortedBy { Sources.normalize(it.name) }
         val out = ArrayList<Category>()
         out += Category("all", context.getString(R.string.all_channels), vis)
         val novelas = vis.filter { it.isNovela }

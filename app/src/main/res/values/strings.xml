@@ -25,7 +25,7 @@
     <string name="refresh_done">%1$d channels: %2$d from Source 1 and %3$d new from Source 2. %4$d duplicates and %5$d YouTube-only channels were skipped. %6$d channels are hidden.</string>
     <string name="refresh_failed">The download failed, so your current channel list was kept.</string>
     <string name="all_channels">All channels</string>
-    <string name="press_ok">Press OK to watch here. Press OK again for full screen.</string>
+    <string name="press_ok">Press OK to watch here. Press OK again for full screen. ⏪ ⏩ jump by letter.</string>
     <string name="nothing_playing">Nothing playing yet</string>
     <string name="tuning">Tuning to %1$s…</string>
     <string name="playing">Playing with sound. Press OK again for full screen.</string>
@@ -80,4 +80,7 @@
     <string name="about_by_source_value">Source 1: %1$d · Source 2: %2$d</string>
     <string name="refresh_failed_source">Source %1$d could not be downloaded, so your current channel list was kept. You can change or clear it in Settings › Channel sources.</string>
     <string name="live_badge">LIVE</string>
+    <string name="search_hint">Search</string>
+    <string name="search_results">Search: “%1$s” (%2$d)</string>
+    <string name="search_none">No channels match “%1$s”. Press Back to clear the search.</string>
 </resources>

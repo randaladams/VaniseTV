@@ -3,11 +3,16 @@ package com.vanisetv.app.ui
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
@@ -18,6 +23,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.vanisetv.app.R
 import com.vanisetv.app.data.Category
 import com.vanisetv.app.data.Channel
+import com.vanisetv.app.data.Sources
 import kotlinx.coroutines.launch
 import java.util.Date
 
@@ -44,7 +50,13 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
 
     override val isPlaybackActive: Boolean get() = ::player.isInitialized && player.isActive
 
-    private val channels: List<Channel> get() = categories.getOrNull(catIndex)?.channels.orEmpty()
+    private lateinit var search: EditText
+    private lateinit var letterView: TextView
+    private var query = ""
+    /** Non-null while a search is active: matches from all visible channels, A–Z. */
+    private var searchResults: List<Channel>? = null
+
+    private val channels: List<Channel> get() = searchResults ?: categories.getOrNull(catIndex)?.channels.orEmpty()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,9 +87,29 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
         }
         chip.setOnFocusChangeListener { _, has -> if (has) showInfo(player.pending ?: player.current) }
 
+        search = findViewById(R.id.search)
+        letterView = findViewById(R.id.letter)
+        search.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) { if (ready) applySearch(s?.toString().orEmpty()) }
+        })
+        search.setOnEditorActionListener { _, action, _ ->
+            if (action == EditorInfo.IME_ACTION_SEARCH || action == EditorInfo.IME_ACTION_DONE) {
+                hideKeyboard()
+                if (channels.isNotEmpty()) focusRow(0)
+                true
+            } else false
+        }
+
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (fullscreen && !launchedFullscreen) exitFullscreen() else finish()
+                when {
+                    fullscreen && !launchedFullscreen -> exitFullscreen()
+                    fullscreen -> finish()
+                    query.isNotEmpty() -> { search.setText(""); search.requestFocus() }   // first Back clears the search
+                    else -> finish()
+                }
             }
         })
 
@@ -126,11 +158,80 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
 
     private fun setCategory(index: Int) {
         if (categories.isEmpty()) return
+        if (query.isNotEmpty()) search.setText("")   // picking a category ends the search
         catIndex = Math.floorMod(index, categories.size)
-        val c = categories[catIndex]
-        chip.text = "‹  ${c.label} · ${getString(R.string.channel_count, c.channels.size)}  ›"
+        updateChip()
         adapter.notifyDataSetChanged()
         list.scrollToPosition(0)
+    }
+
+    private fun updateChip() {
+        val results = searchResults
+        chip.text = if (results != null) getString(R.string.search_results, query, results.size)
+        else categories.getOrNull(catIndex)?.let { "‹  ${it.label} · ${getString(R.string.channel_count, it.channels.size)}  ›" } ?: ""
+    }
+
+    // ---------------- search ----------------
+
+    /** Filters all visible channels by name, ignoring accents, capitals and punctuation. */
+    private fun applySearch(text: String) {
+        query = text.trim()
+        val needle = Sources.normalize(query)
+        searchResults = if (needle.isEmpty()) null
+        else app.repo.visible.filter { Sources.normalize(it.name).contains(needle) }.sortedBy { Sources.normalize(it.name) }
+        updateChip()
+        adapter.notifyDataSetChanged()
+        list.scrollToPosition(0)
+        status.text = when {
+            searchResults?.isEmpty() == true -> getString(R.string.search_none, query)
+            player.current != null && !player.isTuning -> getString(R.string.playing)
+            else -> getString(R.string.press_ok)
+        }
+    }
+
+    private fun hideKeyboard() {
+        (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(search.windowToken, 0)
+    }
+
+    // ---------------- jump by letter (Rewind / Fast-forward) ----------------
+
+    private fun letterOf(c: Channel): Char =
+        Sources.normalize(c.name).firstOrNull()?.let { if (it.isLetter()) it.uppercaseChar() else '#' } ?: '#'
+
+    private fun groupStart(list: List<Channel>, pos: Int): Int {
+        val l = letterOf(list[pos])
+        var i = pos
+        while (i > 0 && letterOf(list[i - 1]) == l) i--
+        return i
+    }
+
+    private fun jumpLetter(forward: Boolean) {
+        val ch = channels
+        if (ch.isEmpty()) return
+        val pos = list.focusedChild?.let { list.getChildAdapterPosition(it) }?.takeIf { it >= 0 } ?: 0
+        val target = if (forward) {
+            val cur = letterOf(ch[pos])
+            (pos + 1 until ch.size).firstOrNull { letterOf(ch[it]) != cur } ?: 0   // wrap to the top
+        } else {
+            val start = groupStart(ch, pos)
+            when {
+                start < pos -> start                        // first go to the start of this letter
+                pos == 0 -> groupStart(ch, ch.size - 1)     // wrap to the last letter
+                else -> groupStart(ch, pos - 1)             // then to the previous letter
+            }
+        }
+        focusRow(target)
+        letterView.text = letterOf(ch[target]).toString()
+        letterView.visibility = View.VISIBLE
+        handler.removeCallbacks(hideLetter)
+        handler.postDelayed(hideLetter, 900)
+    }
+
+    private val hideLetter = Runnable { letterView.visibility = View.GONE }
+
+    private fun focusRow(pos: Int) {
+        (list.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(pos, list.height / 3)
+        list.post { list.findViewHolderForAdapterPosition(pos)?.itemView?.requestFocus() }
     }
 
     private fun focusChannel(channel: Channel) {
@@ -234,6 +335,11 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        val isJumpKey = event.keyCode == KeyEvent.KEYCODE_MEDIA_REWIND || event.keyCode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD
+        if (isJumpKey && !fullscreen && ready) {
+            if (event.action == KeyEvent.ACTION_DOWN) jumpLetter(event.keyCode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD)
+            return true
+        }
         if (fullscreen && ready && event.action == KeyEvent.ACTION_DOWN) {
             when (event.keyCode) {
                 KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_CHANNEL_UP -> { zap(-1); return true }
