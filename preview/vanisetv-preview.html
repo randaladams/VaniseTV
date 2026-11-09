@@ -163,7 +163,10 @@ kbd{font:500 12px var(--f-ui);border:1px solid var(--page-line);border-bottom-wi
 
 /* screensaver */
 .saver{background:#000}
-.saver .float{position:absolute;color:#4b5a66;font-weight:300;text-align:center;transition:left 2s ease,top 2s ease}
+.saver .photo{position:absolute;inset:0;opacity:.45;background:linear-gradient(180deg,#6fa6d6 0%,#a9cbe6 38%,#3f7a4a 39%,#2c5a35 62%,#c9a46a 63%,#8a6a3c 100%)}
+.saver .photo::after{content:"";position:absolute;left:58%;top:12%;width:160px;height:160px;border-radius:50%;background:#f7e3a0;opacity:.8}
+.saver .credit{position:absolute;right:24px;bottom:12px;font-size:20px;color:rgba(238,243,246,.5)}
+.saver .float{position:absolute;color:rgba(238,243,246,.72);text-shadow:0 2px 12px #000;font-weight:300;text-align:center;transition:left 2s ease,top 2s ease}
 .saver .float .t{font-size:140px;font-variant-numeric:tabular-nums}
 .saver .float .d{font-size:40px}
 @media (prefers-reduced-motion: reduce){[data-f],.saver .float{transition:none}.spinner{animation:none}}
@@ -172,7 +175,7 @@ kbd{font:500 12px var(--f-ui);border:1px solid var(--page-line);border-bottom-wi
 <div class="wrap">
   <header>
     <h1>VaniseTV — screen preview</h1>
-    <p>Clickable mockup of the Fire TV app before any code is written. Click the TV, then drive it with the arrow keys like a Fire TV remote. Channel names are real entries from the Brazil list (402 channels as of today).</p>
+    <p>Clickable mockup of the Fire TV app. Click the TV, then drive it with the arrow keys like a Fire TV remote. Channel names are real entries from the two channel sources. Switch Settings › Language to Português to see every screen in Portuguese.</p>
   </header>
 
   <nav class="tabs" aria-label="Screens">
@@ -207,15 +210,15 @@ kbd{font:500 12px var(--f-ui);border:1px solid var(--page-line);border-bottom-wi
         <!-- LIVE TV GUIDE -->
         <section class="screen" id="s-guide">
           <div class="g-info">
-            <div class="chip" data-f data-act="cat" id="cat">All channels</div>
+            <div class="chip" data-f data-act="cat" id="cat"></div>
             <h2 id="g-name">Rede Globo</h2>
             <div class="g-meta" id="g-meta"></div>
-            <div class="g-status" id="g-status">Press OK to watch here. Press OK again for full screen.</div>
+            <div class="g-status" id="g-status"></div>
           </div>
           <div class="video" id="video">
             <div class="pic" id="pic"></div>
-            <div class="msg"><div class="spinner"></div><span id="vmsg">Nothing playing yet</span></div>
-            <div class="vbadge"><svg width="30" height="30" viewBox="0 0 64 64"><path d="M10 24h10l14-12v40L20 40H10z" fill="#fff"/><path d="M44 22a14 14 0 0 1 0 20M50 14a24 24 0 0 1 0 36" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/></svg><span id="vlabel">LIVE</span></div>
+            <div class="msg"><div class="spinner"></div><span id="vmsg"></span></div>
+            <div class="vbadge"><svg width="30" height="30" viewBox="0 0 64 64"><path d="M10 24h10l14-12v40L20 40H10z" fill="#fff"/><path d="M44 22a14 14 0 0 1 0 20M50 14a24 24 0 0 1 0 36" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/></svg><span id="vlabel"></span></div>
           </div>
           <div class="g-list" id="glist"></div>
         </section>
@@ -239,33 +242,35 @@ kbd{font:500 12px var(--f-ui);border:1px solid var(--page-line);border-bottom-wi
             <div class="s-item" data-f data-panel="sound"><b data-t="sSound">Remote click sounds</b> <span id="sv-sound"></span></div>
             <div class="s-item" data-f data-panel="saver"><b data-t="sSaver">Screen saver</b> <span id="sv-saver"></span></div>
             <div class="s-item" data-f data-panel="sources"><b data-t="sSources">Channel sources</b> <span>2</span></div>
-            <div class="s-item" data-f data-panel="about"><b data-t="sAbout">About</b> <span>v1.0.0</span></div>
+            <div class="s-item" data-f data-panel="about"><b data-t="sAbout">About</b> <span>v1.1.0</span></div>
           </div>
           <div class="s-panel" id="spanel"></div>
         </section>
 
         <!-- CHANNEL EDITOR -->
         <section class="screen" id="s-editor">
-          <div class="e-head"><h2>Channel Editor</h2><div class="e-count" id="ecount"></div></div>
+          <div class="e-head"><h2 data-t="editor">Channel Editor</h2><div class="e-count" id="ecount"></div></div>
           <div class="e-list" id="elist"></div>
-          <div class="e-foot">OK shows or hides a channel. Hidden channels disappear from Live TV and from the top 3 tiles. Changes are saved to the local channel file right away.</div>
+          <div class="e-foot" data-t="eHint"></div>
         </section>
 
         <!-- SCREEN SAVER -->
         <section class="screen saver" id="s-saver">
+          <div class="photo"></div>
+          <div class="credit" data-t="credit"></div>
           <div class="float" id="float"><div class="t" data-clock></div><div class="d" data-dateline></div></div>
         </section>
 
         <!-- REFRESH DIALOG (overlay) -->
         <div class="scrim" id="refresh" hidden>
           <div class="dialog">
-            <h2 id="r-title">Refresh channels?</h2>
-            <p id="r-body">This downloads both channel sources, combines them without duplicates and replaces the local copy. Channels you hid stay hidden if they are still in the new list.</p>
-            <p class="src">Source 1: iptv-org.github.io/iptv/countries/br.m3u<br>Source 2: famelack.com/tv/br</p>
+            <h2 id="r-title"></h2>
+            <p id="r-body"></p>
+            <p class="src" id="r-src"></p>
             <div class="bar" id="rbar" hidden><i></i></div>
             <div class="btns" id="rbtns">
-              <div class="btn" data-f data-act="doRefresh">Refresh now</div>
-              <div class="btn" data-f data-act="back">Cancel</div>
+              <div class="btn" data-f data-act="dlgOk" id="r-ok"></div>
+              <div class="btn" data-f data-act="back" id="r-cancel"></div>
             </div>
           </div>
         </div>
@@ -286,7 +291,7 @@ kbd{font:500 12px var(--f-ui);border:1px solid var(--page-line);border-bottom-wi
 
 <script>
 (function(){
-/* ---------- sample data (real names from br.m3u) ---------- */
+/* ---------- sample data (real names from br.m3u and famelack) ---------- */
 const PALETTE=["#1f6fb2","#b23a3a","#2f8a5b","#8a4fb2","#c27a1a","#2a8a8a","#a83f7a","#4d6b2f"];
 const CH=[
  ["Rede Globo","General","1080p",""],["GloboNews","News","1080p",""],["Record","General","720p",""],
@@ -294,24 +299,85 @@ const CH=[
  ["Jovem Pan News","News","720p",""],["BandNews","News","1080p",""],["Band Sports","Sports","1080p",""],
  ["Amazon Sat","General","1080p",""],["Arte 1","Entertainment","720p",""],["AXN (Brazil)","Entertainment","720p",""],
  ["Globoplay Novelas","Series","1080p",""],["Canal Educacao","Education","720p",""],["Box Kids TV","Kids","720p",""],
- ["Rede Gospel","Religious","1080p",""],["AgroBrasil TV","General","720p","Not 24/7"],["RecordTV Rio","General","720p","Geo-blocked"],
+ ["Rede Gospel","Religious","1080p",""],["AgroBrasil TV","General","720p","not247"],["RecordTV Rio","General","720p","geo"],
  ["Rede Brasil","General","1080p",""],["Canal do Boi","Outdoor","720p",""],["Pluto TV Novelas BR","Series","",""],["TNT Novelas Brazil","Series","720p",""],
- ["ge Fast","Other","","",2],["Nickelodeon","Other","","",2],["Play TV","Other","","",2],["REDE SPi","Other","","",2],
+ ["ge Fast","Other","","",2],["Play TV","Other","","",2],["REDE SPi","Other","","",2],
  ["CINDIE TV","Other","","",2],["IMPD TV Worldwide","Other","","",2],["Rádio Temas de Novelas","Other","","",2]
-].map((c,i)=>({name:c[0],group:c[1],q:c[2],flag:c[3],src:c[4]||1,shown:!/Geo/.test(c[3]),color:PALETTE[i%PALETTE.length],
+].map((c,i)=>({name:c[0],group:c[1],q:c[2],flag:c[3],src:c[4]||1,shown:c[3]!=="geo",color:PALETTE[i%PALETTE.length],
   abbr:c[0].replace(/\(.*?\)/g,"").split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase()}));
 const watch={"Rede Globo":["#1",41],"GloboNews":["#2",23],"Record":["#3",9]};
-const CATS=["All channels","Novelas","News","General","Entertainment","Sports","Kids","Series","Other"];
+const CATS=["all","Novelas","News","General","Entertainment","Sports","Kids","Series","Other"];
 const DEF_SRC=["https://iptv-org.github.io/iptv/countries/br.m3u","https://famelack.com/tv/br"];
-const S={src:[...DEF_SRC],editing:null,style:"br",lang:"en",clicks:true,saver:"10 minutes",screen:"home",prev:"home",playing:null,cat:0,panel:"time"};
+const S={src:[...DEF_SRC],editing:null,style:"br",lang:"en",clicks:true,saver:10,screen:"home",prev:"home",playing:null,cat:0,panel:"time"};
+
+/* ---------- every on-screen text, in both languages (mirrors the app string files) ---------- */
 const TX={
- en:{settings:"Settings",editor:"Channel Editor",refresh:"Refresh Channels",live:"LIVE TV",liveSub:n=>`${n} channels · all categories`,watched:h=>`${h} h watched in the last 4 weeks`,
-   sTime:"Time & date style",sSources:"Channel sources",sLang:"Language",sSound:"Remote click sounds",sSaver:"Screen saver",sAbout:"About",us:"United States",br:"Brazil",
+ en:{settings:"Settings",editor:"Channel Editor",refresh:"Refresh Channels",live:"LIVE TV",liveBadge:"LIVE",
+   liveSub:n=>`${n} channels · all categories`,watched:h=>`${h} h watched in the last 4 weeks`,
+   sTime:"Time & date style",sSources:"Channel sources",sLang:"Language",sSound:"Remote click sounds",sSaver:"Screen saver",sAbout:"About",
+   us:"United States",br:"Brazil",on:"On",off:"Off",
+   saverOpt:{3:"3 minutes",10:"10 minutes",60:"1 hour",0:"Never"},
+   hintTime:"Applies to the home screen, full screen, the screen saver and About.",
+   hintLang:"Changes every menu and message in the app.",
+   hintSound:"A short tick when you move or select in the menus. It never plays while a channel is playing.",
+   hintSaver:"Darkens the screen after the menus sit idle. It never starts while a channel is playing.",
+   hintSources:"Both lists are downloaded and combined. A channel found in both is kept once, from Source 1. Press OK on an address to change it.",
+   source:n=>`Source ${n}`,emptySrc:"(empty: not used)",
+   stat1:n=>`${n} channels in the last download`,
+   stat2:(n,d,y)=>`${n} new channels in the last download · ${d} duplicates and ${y} YouTube-only skipped`,
+   restore:"Restore default addresses",
+   srcNote:"Changes take effect on the next Refresh Channels. Each source can be an M3U playlist link or a famelack country page such as famelack.com/tv/br. Leave one empty to stop using it.",
+   aVer:"App version",aDev:"Device",aActive:"Active channels",aActiveVal:(a,b)=>`${a} of ${b}`,aBySrc:"By source",
+   aBySrcVal:(a,b)=>`Source 1: ${a} · Source 2: ${b}`,aDownloaded:"Channel list downloaded",
+   allCh:"All channels",chCount:n=>`${n} channels`,
+   groups:{Novelas:"Novelas",News:"News",General:"General",Entertainment:"Entertainment",Sports:"Sports",Kids:"Kids",Series:"Series",Other:"Other",Education:"Education",Religious:"Religious",Outdoor:"Outdoor"},
+   pressOk:"Press OK to watch here. Press OK again for full screen.",nothing:"Nothing playing yet",
+   tuning:n=>`Tuning to ${n}…`,playing:"Playing with sound. Press OK again for full screen.",
+   nowPlaying:"● Playing",liveSound:n=>`LIVE · ${n} · sound on`,fsHint:"Up / Down changes channel · Back returns",
+   geo:"Geo-blocked",not247:"Not 24/7",
+   eCount:(s,h)=>`<b>${s}</b> shown · ${h} hidden`,shown:"Shown",hidden:"Hidden",
+   eHint:"OK shows or hides a channel. Hidden channels disappear from Live TV and the home tiles. Changes are saved right away.",
+   credit:"Photo: (photographer's name) · Wikimedia Commons",
+   rTitle:"Refresh channels?",rBody:"This downloads both channel sources, combines them without duplicates and replaces the local copy. Channels you hid stay hidden if they are still in the new list.",
+   rNow:"Refresh now",cancel:"Cancel",rLoading:"Downloading channel list…",rDoneTitle:"Channel list updated",
+   rDone:h=>`408 channels: 402 from Source 1 and 6 new from Source 2. 102 duplicates and 24 YouTube-only channels were skipped. ${h} channels are hidden.`,
+   exitTitle:"Exit VaniseTV?",exitBody:"Press Back again to exit.",exit:"Exit",
    days:["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]},
- pt:{settings:"Configurações",editor:"Editor de canais",refresh:"Atualizar canais",live:"TV AO VIVO",liveSub:n=>`${n} canais · todas as categorias`,watched:h=>`${h} h assistidas nas últimas 4 semanas`,
-   sTime:"Formato de hora e data",sSources:"Fontes de canais",sLang:"Idioma",sSound:"Sons do controle",sSaver:"Protetor de tela",sAbout:"Sobre",us:"Estados Unidos",br:"Brasil",
+ pt:{settings:"Configurações",editor:"Editor de canais",refresh:"Atualizar canais",live:"TV AO VIVO",liveBadge:"AO VIVO",
+   liveSub:n=>`${n} canais · todas as categorias`,watched:h=>`${h} h assistidas nas últimas 4 semanas`,
+   sTime:"Formato de hora e data",sSources:"Fontes de canais",sLang:"Idioma",sSound:"Sons do controle",sSaver:"Protetor de tela",sAbout:"Sobre",
+   us:"Estados Unidos",br:"Brasil",on:"Ligado",off:"Desligado",
+   saverOpt:{3:"3 minutos",10:"10 minutos",60:"1 hora",0:"Nunca"},
+   hintTime:"Vale para a tela inicial, a tela cheia, o protetor de tela e Sobre.",
+   hintLang:"Muda todos os menus e mensagens do app.",
+   hintSound:"Um clique curto ao navegar nos menus. Nunca toca enquanto um canal está passando.",
+   hintSaver:"Escurece a tela quando os menus ficam parados. Nunca liga enquanto um canal está passando.",
+   hintSources:"As duas listas são baixadas e combinadas. Um canal que está nas duas fica uma vez só, da Fonte 1. Pressione OK num endereço para mudá-lo.",
+   source:n=>`Fonte ${n}`,emptySrc:"(vazia: não usada)",
+   stat1:n=>`${n} canais no último download`,
+   stat2:(n,d,y)=>`${n} canais novos no último download · ${d} duplicados e ${y} só do YouTube ignorados`,
+   restore:"Restaurar endereços padrão",
+   srcNote:"As mudanças valem no próximo Atualizar canais. Cada fonte pode ser um link de playlist M3U ou uma página de país do famelack, como famelack.com/tv/br. Deixe uma vazia para não usá-la.",
+   aVer:"Versão do app",aDev:"Aparelho",aActive:"Canais ativos",aActiveVal:(a,b)=>`${a} de ${b}`,aBySrc:"Por fonte",
+   aBySrcVal:(a,b)=>`Fonte 1: ${a} · Fonte 2: ${b}`,aDownloaded:"Lista de canais baixada",
+   allCh:"Todos os canais",chCount:n=>`${n} canais`,
+   groups:{Novelas:"Novelas",News:"Notícias",General:"Geral",Entertainment:"Entretenimento",Sports:"Esportes",Kids:"Infantil",Series:"Séries",Other:"Outros",Education:"Educação",Religious:"Religioso",Outdoor:"Ar livre"},
+   pressOk:"Pressione OK para assistir aqui. OK de novo para tela cheia.",nothing:"Nada tocando ainda",
+   tuning:n=>`Sintonizando ${n}…`,playing:"Tocando com som. Pressione OK de novo para tela cheia.",
+   nowPlaying:"● Tocando",liveSound:n=>`AO VIVO · ${n} · com som`,fsHint:"Cima / Baixo troca de canal · Voltar retorna",
+   geo:"Bloqueio regional",not247:"Não é 24h",
+   eCount:(s,h)=>`<b>${s}</b> visíveis · ${h} ocultos`,shown:"Visível",hidden:"Oculto",
+   eHint:"OK mostra ou oculta um canal. Canais ocultos somem da TV ao Vivo e da tela inicial. As mudanças são salvas na hora.",
+   credit:"Foto: (nome do fotógrafo) · Wikimedia Commons",
+   rTitle:"Atualizar canais?",rBody:"Isto baixa as duas fontes de canais, combina sem duplicados e substitui a cópia local. Os canais ocultos continuam ocultos se ainda estiverem na nova lista.",
+   rNow:"Atualizar agora",cancel:"Cancelar",rLoading:"Baixando a lista de canais…",rDoneTitle:"Lista de canais atualizada",
+   rDone:h=>`408 canais: 402 da Fonte 1 e 6 novos da Fonte 2. 102 duplicados e 24 só do YouTube foram ignorados. ${h} canais estão ocultos.`,
+   exitTitle:"Sair do VaniseTV?",exitBody:"Pressione Voltar de novo para sair.",exit:"Sair",
    days:["domingo","segunda-feira","terça-feira","quarta-feira","quinta-feira","sexta-feira","sábado"]}};
 const T=k=>TX[S.lang][k];
+const G=g=>T("groups")[g]||g;
+const catLabel=c=>c==="all"?T("allCh"):G(c);
+const flagText=f=>f==="geo"?T("geo"):f==="not247"?T("not247"):"";
 function applyLang(){$$("[data-t]").forEach(e=>e.textContent=T(e.dataset.t))}
 function fmtDate(d){return S.style==="br"?`${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`:`${pad(d.getMonth()+1)}/${pad(d.getDate())}/${d.getFullYear()}`}
 function fmtTime(h,m){if(S.style==="br")return `${pad(h)}:${pad(m)}`;return `${h%12||12}:${pad(m)} ${h<12?"AM":"PM"}`}
@@ -325,9 +391,10 @@ function tick(){
   const d=new Date(); let h=d.getHours(), m=pad(d.getMinutes()); let t;
   if(S.style==="br") t=`${pad(h)}:${m}`; else { const ap=h<12?"AM":"PM"; h=h%12||12; t=`${h}:${m}<small>${ap}</small>`; }
   const date=fmtDate(d), dow=T("days")[d.getDay()];
+  const Dow=dow.charAt(0).toUpperCase()+dow.slice(1);
   $$("[data-clock]").forEach(e=>e.innerHTML=t);
-  $$("[data-date]").forEach(e=>e.innerHTML=`${date}<span>${dow}</span>`);
-  $$("[data-dateline]").forEach(e=>e.textContent=`${dow}, ${date}`);
+  $$("[data-date]").forEach(e=>e.innerHTML=`${date}<span>${Dow}</span>`);
+  $$("[data-dateline]").forEach(e=>e.textContent=`${Dow}, ${date}`);
 }
 setInterval(tick,1000);
 
@@ -335,20 +402,22 @@ setInterval(tick,1000);
 function renderHome(){
   const top=CH.filter(c=>c.shown&&watch[c.name]).slice(0,3);
   $("#top3").innerHTML=top.map(c=>`<div class="tile" data-f data-act="play" data-name="${c.name}">${logo(c)}<div><h3>${c.name}</h3><p>${T("watched")(watch[c.name][1])}</p></div><div class="rank">${watch[c.name][0]}</div></div>`).join("")+
-   `<div class="tile live" data-f data-act="guide"><div class="logo">LIVE</div><div><h3>${T("live")}</h3><p>${T("liveSub")(CH.filter(c=>c.shown).length)}</p></div></div>`;
-  applyLang();
+   `<div class="tile live" data-f data-act="guide"><div class="logo" style="font-size:${S.lang==="pt"?30:40}px">${T("liveBadge")}</div><div><h3>${T("live")}</h3><p>${T("liveSub")(CH.filter(c=>c.shown).length)}</p></div></div>`;
 }
 
 /* ---------- guide ---------- */
-function guideRows(){const cat=CATS[S.cat];return CH.filter(c=>c.shown&&(cat==="All channels"||(cat==="Novelas"?/novela/i.test(c.name):c.group===cat)))}
-const srcBadge=c=>`<div class="srcb ${c.src===2?"s2":""}" title="Source ${c.src}">${c.src}</div>`;
+function guideRows(){const cat=CATS[S.cat];return CH.filter(c=>c.shown&&(cat==="all"||(cat==="Novelas"?/novela/i.test(c.name):c.group===cat)))}
+const srcBadge=c=>`<div class="srcb ${c.src===2?"s2":""}" title="${T("source")(c.src)}">${c.src}</div>`;
 function renderGuide(){
-  $("#cat").textContent=CATS[S.cat]+"  ▾";
-  $("#glist").innerHTML=guideRows().map(c=>`<div class="row" data-f data-act="tune" data-name="${c.name}">${logo(c)}<div>${c.name}${S.playing===c.name?'<span class="now">● Playing</span>':""}</div><div class="grp">${c.group}</div><div class="q">${c.q}</div>${srcBadge(c)}</div>`).join("");
+  const rows=guideRows();
+  $("#cat").textContent=`‹  ${catLabel(CATS[S.cat])} · ${T("chCount")(rows.length)}  ›`;
+  $("#glist").innerHTML=rows.map(c=>`<div class="row" data-f data-act="tune" data-name="${c.name}">${logo(c)}<div>${c.name}${S.playing===c.name?`<span class="now">${T("nowPlaying")}</span>`:""}</div><div class="grp">${G(c.group)}</div><div class="q">${c.q}</div>${srcBadge(c)}</div>`).join("");
+  if(!S.playing&&!tuneTimer){$("#vmsg").textContent=T("nothing");$("#g-status").textContent=T("pressOk");}
+  else if(S.playing&&!tuneTimer){$("#g-status").textContent=T("playing");$("#vlabel").textContent=T("liveSound")(S.playing);}
 }
 function showInfo(c){
   $("#g-name").textContent=c.name;
-  $("#g-meta").innerHTML=`<span>${c.group}</span>${c.q?`<span class="tag">${c.q}</span>`:""}<span class="tag">Source ${c.src}</span>${c.flag?`<span class="tag warn">${c.flag}</span>`:""}`;
+  $("#g-meta").innerHTML=`<span>${G(c.group)}</span>${c.q?`<span class="tag">${c.q}</span>`:""}<span class="tag">${T("source")(c.src)}</span>${c.flag?`<span class="tag warn">${flagText(c.flag)}</span>`:""}`;
 }
 let tuneTimer=null;
 const SETTLE=900; // ms the remote must be still before a stream starts
@@ -357,14 +426,12 @@ function tune(name){
   if(S.playing===name && !tuneTimer){ openFull(name); return; }
   clearTimeout(tuneTimer);
   v.classList.remove("playing"); v.classList.add("tuning");
-  $("#vmsg").textContent=`Tuning to ${name}…`;
-  $("#g-status").textContent="Waiting for the remote to settle, then starting the stream. Extra presses only change which channel loads.";
+  $("#vmsg").textContent=T("tuning")(name);
+  $("#g-status").textContent=T("tuning")(name);
   tuneTimer=setTimeout(()=>{
     tuneTimer=null; S.playing=name; const c=CH.find(x=>x.name===name);
     v.classList.remove("tuning"); v.classList.add("playing");
     $("#pic").style.background=fakeVideo(c);
-    $("#vlabel").textContent=`LIVE · ${name} · sound on`;
-    $("#g-status").textContent="Playing with sound. Press OK again for full screen.";
     const keep=focused&&focused.dataset.name; renderGuide(); if(keep) setFocus($(`#glist [data-name="${CSS.escape(keep)}"]`));
   },SETTLE);
 }
@@ -373,48 +440,48 @@ function openFull(name){
   const c=CH.find(x=>x.name===name)||CH[0]; S.playing=c.name;
   $("#fpic").style.background=fakeVideo(c);
   $("#flogo").outerHTML=`<div class="logo" id="flogo" style="background:${c.color}">${c.abbr}</div>`;
-  $("#fname").textContent=c.name; $("#fmeta").textContent=`${c.group} · ${c.q} · Back returns to the guide`;
+  $("#fname").textContent=c.name;
+  $("#fmeta").textContent=[G(c.group),c.q,T("fsHint")].filter(Boolean).join(" · ");
   go("full");
 }
 
 /* ---------- settings ---------- */
 const PANELS={
- time:()=>`<h3>${T("sTime")}</h3><p class="hint">Applies to the home screen, the full-screen banner, the screen saver and About.</p>
+ time:()=>`<h3>${T("sTime")}</h3><p class="hint">${T("hintTime")}</p>
    <div class="opts">${opt("style","us",T("us"),"7:45 PM · 11/09/2026")}${opt("style","br",T("br"),"19:45 · 09/11/2026")}</div>`,
- lang:()=>`<h3>${T("sLang")}</h3><p class="hint">Changes every menu and message in the app. In this preview only the home screen and settings labels switch.</p>
+ lang:()=>`<h3>${T("sLang")}</h3><p class="hint">${T("hintLang")}</p>
    <div class="opts">${opt("lang","en","English")}${opt("lang","pt","Português (Brasil)")}</div>`,
- sound:()=>`<h3>Remote click sounds</h3><p class="hint">A short tick when you move or select in the menus. Never plays over a channel.</p>
-   <div class="opts">${opt("clicks",true,"On")}${opt("clicks",false,"Off")}</div>`,
- saver:()=>`<h3>Screen saver</h3><p class="hint">Dims the screen after the menus sit idle. It never starts while a channel is playing full screen.</p>
-   <div class="opts">${["3 minutes","10 minutes","1 hour","Never"].map(v=>opt("saver",v,v)).join("")}</div>`,
- sources:()=>`<h3>${T("sSources")}</h3><p class="hint">Both lists are downloaded and combined. A channel found in both is kept once, from Source 1. Press OK on an address to change it.</p>
-   ${[0,1].map(i=>`<div class="field" data-f data-act="editsrc" data-i="${i}"><span class="lbl">Source ${i+1}</span>${S.editing===i?`<input class="url" id="srcin" value="${S.src[i]}">`:`<span class="url">${S.src[i]||"(empty: not used)"}</span>`}</div>
-   <div class="srcstat">${i===0?"Playlist (M3U) · 402 channels on 09/11/2026":"famelack list · 132 channels: 104 already in Source 1, 21 YouTube-only skipped, 7 new"}</div>`).join("")}
-   <div class="minibtn" data-f data-act="resetsrc">Restore default addresses</div>
-   <p class="srcnote">Changes take effect on the next Refresh Channels. Supported: M3U playlist links and famelack country pages (famelack.com/tv/xx).</p>`,
- about:()=>`<h3>About</h3><p class="hint">Read-only.</p><dl class="about">
-   <dt>App version</dt><dd>1.1.0 (build 2)</dd>
-   <dt>Fire OS</dt><dd>6.7.1.1 (Android 7.1)</dd>
-   <dt>Active channels</dt><dd>${CH.filter(c=>c.shown).length} of ${CH.length} in this preview · 409 in the full list</dd>
-   <dt>By source</dt><dd>Source 1: 402 · Source 2: 7</dd>
-   <dt>Channel list downloaded</dt><dd>${fmtDate(new Date(2026,10,9))} ${fmtTime(7,12)}</dd></dl>`
+ sound:()=>`<h3>${T("sSound")}</h3><p class="hint">${T("hintSound")}</p>
+   <div class="opts">${opt("clicks",true,T("on"))}${opt("clicks",false,T("off"))}</div>`,
+ saver:()=>`<h3>${T("sSaver")}</h3><p class="hint">${T("hintSaver")}</p>
+   <div class="opts">${[3,10,60,0].map(v=>opt("saver",v,T("saverOpt")[v])).join("")}</div>`,
+ sources:()=>`<h3>${T("sSources")}</h3><p class="hint">${T("hintSources")}</p>
+   ${[0,1].map(i=>`<div class="field" data-f data-act="editsrc" data-i="${i}"><span class="lbl">${T("source")(i+1)}</span>${S.editing===i?`<input class="url" id="srcin" value="${S.src[i]}">`:`<span class="url">${S.src[i]||T("emptySrc")}</span>`}</div>
+   <div class="srcstat">${i===0?T("stat1")(402):T("stat2")(6,102,24)}</div>`).join("")}
+   <div class="minibtn" data-f data-act="resetsrc">${T("restore")}</div>
+   <p class="srcnote">${T("srcNote")}</p>`,
+ about:()=>`<h3>${T("sAbout")}</h3><dl class="about">
+   <dt>${T("aVer")}</dt><dd>1.1.0</dd>
+   <dt>${T("aDev")}</dt><dd>AFTMM · Android 7.1.2</dd>
+   <dt>${T("aActive")}</dt><dd>${T("aActiveVal")(395,408)}</dd>
+   <dt>${T("aBySrc")}</dt><dd>${T("aBySrcVal")(402,6)}</dd>
+   <dt>${T("aDownloaded")}</dt><dd>${fmtDate(new Date(2026,10,9))} ${fmtTime(7,12)}</dd></dl>`
 };
 function opt(key,val,label,extra=""){return `<div class="opt ${S[key]===val?"chk":""}" data-f data-act="set" data-k="${key}" data-v='${JSON.stringify(val)}'><div class="radio"></div>${label}${extra?`<span class="ex">${extra}</span>`:""}</div>`}
 function renderSettings(){
-  applyLang();
   $("#sv-time").textContent=T(S.style);
   $("#sv-lang").textContent=S.lang==="en"?"English":"Português";
-  $("#sv-sound").textContent=S.clicks?"On":"Off";
-  $("#sv-saver").textContent=S.saver;
+  $("#sv-sound").textContent=S.clicks?T("on"):T("off");
+  $("#sv-saver").textContent=T("saverOpt")[S.saver];
   $$(".s-item").forEach(e=>e.classList.toggle("sel",e.dataset.panel===S.panel));
   $("#spanel").innerHTML=PANELS[S.panel]();
 }
 
 /* ---------- editor ---------- */
-const GEO=`<span class="geo"><svg width="30" height="30" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"><circle cx="32" cy="32" r="24"/><path d="M8 32h48M32 8c8 8 8 40 0 48M32 8c-8 8-8 40 0 48M12 12l40 40"/></svg>Geo-blocked</span>`;
+const GEO=()=>`<span class="geo"><svg width="30" height="30" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"><circle cx="32" cy="32" r="24"/><path d="M8 32h48M32 8c8 8 8 40 0 48M32 8c-8 8-8 40 0 48M12 12l40 40"/></svg>${T("geo")}</span>`;
 function renderEditor(){
-  $("#ecount").innerHTML=`<b>${CH.filter(c=>c.shown).length}</b> shown · ${CH.filter(c=>!c.shown).length} hidden`;
-  $("#elist").innerHTML=CH.map(c=>`<div class="erow ${c.shown?"shown":""}" data-f data-act="toggle" data-name="${c.name}">${logo(c)}<div class="nm">${c.name}${c.flag==="Geo-blocked"?GEO:c.flag?` <span class="tag warn" style="font-size:20px">${c.flag}</span>`:""}</div><div class="grp">${[c.group,c.q,"Source "+c.src].filter(Boolean).join(" · ")}</div><div class="state"><span>${c.shown?"Shown":"Hidden"}</span><div class="pill"></div></div></div>`).join("");
+  $("#ecount").innerHTML=T("eCount")(CH.filter(c=>c.shown).length,CH.filter(c=>!c.shown).length);
+  $("#elist").innerHTML=CH.map(c=>`<div class="erow ${c.shown?"shown":""}" data-f data-act="toggle" data-name="${c.name}">${logo(c)}<div class="nm">${c.name}${c.flag==="geo"?GEO():c.flag?` <span class="tag warn" style="font-size:20px">${flagText(c.flag)}</span>`:""}</div><div class="grp">${[G(c.group),c.q,T("source")(c.src)].filter(Boolean).join(" · ")}</div><div class="state"><span>${c.shown?T("shown"):T("hidden")}</span><div class="pill"></div></div></div>`).join("");
 }
 
 /* ---------- screens & focus ---------- */
@@ -427,6 +494,14 @@ function setFocus(el){
   if(S.screen==="settings" && el.dataset.panel && el.dataset.panel!==S.panel){S.panel=el.dataset.panel;renderSettings();}
 }
 function scope(){return $("#refresh").hidden?$("#s-"+S.screen):$("#refresh")}
+function renderAll(){
+  applyLang(); tick();
+  if(S.screen==="home") renderHome();
+  if(S.screen==="guide") renderGuide();
+  if(S.screen==="settings") renderSettings();
+  if(S.screen==="editor") renderEditor();
+  if(S.screen==="full" && S.playing){const c=CH.find(x=>x.name===S.playing);$("#fmeta").textContent=[G(c.group),c.q,T("fsHint")].filter(Boolean).join(" · ");}
+}
 function go(name){
   if(name==="refresh"){ openRefresh(); return; }
   closeRefresh(true);
@@ -434,39 +509,51 @@ function go(name){
   S.screen=name;
   $$(".screen").forEach(s=>s.classList.toggle("on",s.id==="s-"+name));
   $$(".tabs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.go===name));
-  if(name==="home") renderHome();
-  if(name==="guide") renderGuide();
-  if(name==="settings") renderSettings();
-  if(name==="editor") renderEditor();
-  if(name==="full" && !$("#fname").textContent) openFull("Rede Globo");
+  if(name==="full" && !$("#fname").textContent) { openFull("Rede Globo"); return; }
+  renderAll();
   if(name==="saver") drift();
   const first = name==="guide" ? ($(`#glist [data-name="${CSS.escape(S.playing||"")}"]`)||$("#glist [data-f]")) :
                 name==="settings" ? $(`.s-item[data-panel="${S.panel}"]`) : scope().querySelector("[data-f]");
   focused=null; setFocus(first);
   renderNote(name);
 }
-function openRefresh(){
+/* One dialog box, used for Refresh Channels and the exit confirmation. */
+let dlgMode=null;
+function showDialog(mode){
   if(S.screen!=="home") go("home");
+  dlgMode=mode;
   $("#refresh").hidden=false; $("#rbar").hidden=true; $("#rbtns").hidden=false;
-  $("#r-title").textContent="Refresh channels?";
-  $("#r-body").textContent="This downloads both channel sources, combines them without duplicates and replaces the local copy. Channels you hid stay hidden if they are still in the new list.";
-  $$(".tabs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.go==="refresh"));
-  focused=null; setFocus($("#refresh [data-f]")); renderNote("refresh");
+  const isRefresh=mode==="refresh";
+  $("#r-title").textContent=isRefresh?T("rTitle"):T("exitTitle");
+  $("#r-body").textContent=isRefresh?T("rBody"):T("exitBody");
+  $("#r-src").hidden=!isRefresh;
+  $("#r-src").innerHTML=`${T("source")(1)}: iptv-org.github.io/iptv/countries/br.m3u<br>${T("source")(2)}: famelack.com/tv/br`;
+  $("#r-ok").textContent=isRefresh?T("rNow"):T("exit");
+  $("#r-cancel").textContent=T("cancel");
+  $$(".tabs button").forEach(b=>b.setAttribute("aria-pressed",isRefresh&&b.dataset.go==="refresh"));
+  focused=null; setFocus(isRefresh?$("#r-ok"):$("#r-cancel")); renderNote(isRefresh?"refresh":"exit");
 }
-function closeRefresh(silent){ if($("#refresh").hidden) return; $("#refresh").hidden=true; if(!silent){focused=null;setFocus($('[data-act="refresh"]'));$$(".tabs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.go==="home"));renderNote("home");} }
-function doRefresh(){
-  $("#rbtns").hidden=true; $("#rbar").hidden=false; $("#r-title").textContent="Downloading channel list…";
+function openRefresh(){showDialog("refresh")}
+function closeRefresh(silent){ if($("#refresh").hidden) return; $("#refresh").hidden=true; dlgMode=null; if(!silent){focused=null;setFocus($('[data-act="refresh"]')||$("#top3 [data-f]"));$$(".tabs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.go==="home"));renderNote("home");} }
+function dialogOk(){
+  if(dlgMode==="exit"){ closeRefresh(true); exitApp(); return; }
+  $("#rbtns").hidden=true; $("#rbar").hidden=false; $("#r-title").textContent=T("rLoading"); $("#r-body").textContent=""; $("#r-src").hidden=true;
   let p=0; const bar=$("#rbar i");
   const t=setInterval(()=>{p+=12;bar.style.width=Math.min(p,100)+"%";if(p>=100){clearInterval(t);
-    $("#r-title").textContent="Channel list updated";
-    $("#r-body").textContent=`409 channels: 402 from Source 1 and 7 new from Source 2 (104 duplicates and 21 YouTube-only channels skipped). ${CH.filter(c=>!c.shown).length} hidden channels kept hidden.`;
-    setTimeout(()=>closeRefresh(false),1600);}},120);
+    $("#r-title").textContent=T("rDoneTitle");
+    $("#r-body").textContent=T("rDone")(CH.filter(c=>!c.shown).length);
+    setTimeout(()=>closeRefresh(false),2200);}},120);
+}
+function exitApp(){
+  const st=$("#stage"); st.style.transition="opacity .4s"; st.style.opacity="0";
+  setTimeout(()=>{st.style.opacity="1";go("home");},1200);
 }
 function back(){
-  if(!$("#refresh").hidden) return closeRefresh(false);
+  if(!$("#refresh").hidden){ if(dlgMode==="exit"){ closeRefresh(true); exitApp(); return; } return closeRefresh(false); }
   if(S.screen==="full") return go("guide");
   if(S.screen==="saver") return go(S.prev||"home");
-  if(S.screen!=="home") go("home");
+  if(S.screen!=="home") return go("home");
+  showDialog("exit");
 }
 function activate(el){
   if(!el) return; click(true);
@@ -475,17 +562,18 @@ function activate(el){
   else if(a==="play") openFull(el.dataset.name);
   else if(a==="tune") tune(el.dataset.name);
   else if(a==="cat"){S.cat=(S.cat+1)%CATS.length;renderGuide();}
-  else if(a==="set"){S[el.dataset.k]=JSON.parse(el.dataset.v);tick();renderHome();renderSettings();setFocus($(`.opt[data-k="${el.dataset.k}"][data-v='${el.dataset.v}']`));}
+  else if(a==="set"){S[el.dataset.k]=JSON.parse(el.dataset.v);renderAll();setFocus($(`.opt[data-k="${el.dataset.k}"][data-v='${el.dataset.v}']`));}
   else if(a==="toggle"){const c=CH.find(x=>x.name===el.dataset.name);c.shown=!c.shown;renderEditor();setFocus($(`#elist [data-name="${CSS.escape(c.name)}"]`));}
   else if(a==="editsrc"){const i=+el.dataset.i;S.editing=i;renderSettings();const f=$(`.field[data-i="${i}"]`);setFocus(f);const inp=$("#srcin");inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length);}
   else if(a==="resetsrc"){S.src=[...DEF_SRC];S.editing=null;renderSettings();setFocus($('[data-act="resetsrc"]'));}
-  else if(a==="doRefresh") doRefresh();
+  else if(a==="dlgOk") dialogOk();
   else if(a==="back") back();
 }
 /* spatial navigation: nearest focusable in the pressed direction */
 function move(dir){
   const items=[...scope().querySelectorAll("[data-f]")].filter(e=>e.offsetParent!==null);
   if(!focused){setFocus(items[0]);return}
+  if(S.screen==="guide"&&focused.id==="cat"&&(dir==="left"||dir==="right")){S.cat=(S.cat+(dir==="right"?1:CATS.length-1))%CATS.length;renderGuide();click(false);return}
   const r=focused.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/2;
   let best=null,score=1e9;
   for(const e of items){ if(e===focused) continue;
@@ -525,15 +613,16 @@ $$(".tabs button").forEach(b=>b.addEventListener("click",()=>{go(b.dataset.go);v
 const stage=$("#stage");
 new ResizeObserver(()=>{stage.style.transform=`scale(${vp.clientWidth/1920})`}).observe(vp);
 
-/* notes under the TV */
+/* notes under the TV (about the preview, so they stay in English) */
 const NOTES={
- home:["Home","Clock top left, date top right, both large. The first three tiles are your most-watched channels over the last 4 weeks, ranked by minutes watched (a channel counts after 30 seconds of viewing). Selecting one opens it straight to full screen. Until you have history, those tiles show “Watch channels to fill this spot”. LIVE TV opens the full channel list. Settings, Channel Editor and Refresh Channels sit below the line."],
- guide:["Live TV","Rows are now about two-thirds the old height, so about 8 channels show at once instead of 5. The small number at the end of each row is the source the channel came from (1 = iptv-org, 2 = famelack). Moving through the list only updates the info text. Nothing streams until you press OK.","Freeze protection: after OK the app waits about 0.9 s for the remote to settle; more presses in that window only change which channel loads. Only one player exists, and the old stream is fully stopped before the next starts. If a stream fails or stalls for 10 s, the box says so instead of freezing.","The M3U list has no program schedule, so rows show category and quality instead of show times. The “All channels” chip cycles categories."],
- full:["Full screen","OK on the channel that is already playing opens it full screen. The banner shows for a few seconds after a channel change, then hides. Back returns to the guide with the same channel still playing."],
- settings:["Settings","New: Channel sources. Two editable addresses; press OK on one to type a new address (the Fire TV on-screen keyboard opens; in this preview, type and press Enter, or Esc to cancel). Leave a source empty to stop using it. Restore default addresses puts both original links back.","Duplicates are removed by matching stream address or channel name (ignoring accents, capitals and quality tags). When a channel is in both, the Source 1 copy is kept because it has the logo and category.","famelack's list is not a playlist file: the app reads the data file behind famelack.com/tv/br. 21 of its new channels are YouTube links, which the Fire TV video player can't play, so they are skipped."],
- editor:["Channel Editor","Every channel in the local copy, with a show/hide switch and the source it came from. Geo-blocked channels are included but start hidden, marked with a crossed-out globe.","In the local channels.m3u file each entry carries vanise-source=\"1\" or \"2\"."],
- refresh:["Refresh Channels","Asks before replacing the local file. Hidden choices carry over for channels that still exist in the new list (matched by stream address and channel ID). Watch history is kept."],
- saver:["Screen saver","After the chosen idle time the screen goes black with a dim clock that moves every few seconds to protect the TV panel. Any button wakes it. It never triggers during full-screen playback."]
+ home:["Home","Clock top left, date top right, both large. The first three tiles are your most-watched channels over the last 4 weeks; selecting one opens it straight to full screen. LIVE TV opens the full channel list. Press Back (Esc) here to see the exit confirmation."],
+ guide:["Live TV","About 8 channels show at once. The small number at the end of each row is the channel's source (1 = iptv-org, 2 = famelack). Left/Right on the category chip changes category. Nothing streams until you press OK; OK again goes full screen.","Freeze protection: after OK the app waits about 0.9 s for the remote to settle; more presses in that window only change which channel loads. Streams that fail or stall for 15 s are retried once, then reported as unavailable."],
+ full:["Full screen","The banner shows for a few seconds after a channel change, then hides. Up/Down changes channel. Back returns to the guide with the same channel still playing."],
+ settings:["Settings","Switch Language to Português: every screen and dialog in this preview, and in the app, changes language. Channel names stay as the broadcaster writes them.","Channel sources: press OK on an address to type a new one (the Fire TV keyboard opens; here, type and press Enter, or Esc to cancel). Each slot accepts an M3U playlist link or a famelack country page."],
+ editor:["Channel Editor","Every channel in the local copy, with a show/hide switch and the source it came from. Geo-blocked channels start hidden, marked with a crossed-out globe."],
+ refresh:["Refresh Channels","Asks before replacing the local file. Hidden choices carry over for channels that still exist in the new list. If either source fails to download, the current list is kept."],
+ exit:["Exit confirmation","Back on the home screen asks before closing. Cancel is selected first; pressing Back again exits."],
+ saver:["Screen saver","Shows the home screen's photo, darkened, with the clock and date on top. The clock moves every 20 seconds and the photo changes every 10 minutes. Any button wakes it. It never starts while a channel is playing.","The scene here is a drawn stand-in for a real photo."]
 };
 function renderNote(n){const v=NOTES[n];$("#note").innerHTML=`<h2>${v[0]}</h2><ul>${v.slice(1).map(x=>`<li>${x}</li>`).join("")}</ul>`}
 

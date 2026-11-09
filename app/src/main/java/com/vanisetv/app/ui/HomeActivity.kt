@@ -66,6 +66,8 @@ class HomeActivity : BaseActivity() {
         handler.removeCallbacks(clockTick)
     }
 
+    override fun onSaverHidden() = showBackground()
+
     private val clockTick = object : Runnable {
         override fun run() {
             val now = Date()
@@ -122,7 +124,7 @@ class HomeActivity : BaseActivity() {
         val logo = liveTile.findViewById<View>(R.id.tileLogo)
         bindLogo(logo, null)
         logo.setBackgroundResource(R.drawable.bg_live_badge)
-        logo.findViewById<TextView>(R.id.logoText).apply { text = "LIVE"; visibility = View.VISIBLE }
+        logo.findViewById<TextView>(R.id.logoText).apply { setText(R.string.live_badge); textSize = 15f; visibility = View.VISIBLE }
         liveTile.findViewById<TextView>(R.id.tileTitle).setText(R.string.live_tv)
         liveTile.findViewById<TextView>(R.id.tileSub).text = getString(R.string.live_sub, visible.size)
         liveTile.findViewById<TextView>(R.id.tileRank).text = ""
@@ -155,10 +157,14 @@ class HomeActivity : BaseActivity() {
         }
     }
 
+    private var backgroundFile: java.io.File? = null
+
     private fun showBackground() {
-        if (backgroundShown) return
-        val photo = Backgrounds.random(this) ?: return
+        val photo = Backgrounds.current(this) ?: return
+        // The screen saver may have moved on to another photo; follow it.
+        if (backgroundShown && photo.file == backgroundFile) return
         backgroundShown = true
+        backgroundFile = photo.file
         findViewById<ImageView>(R.id.background).load(photo.file) { crossfade(600) }
         findViewById<TextView>(R.id.credit).text =
             if (photo.artist.isNotBlank()) getString(R.string.photo_credit, photo.artist) else "Wikimedia Commons"

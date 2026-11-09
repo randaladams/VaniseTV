@@ -13,10 +13,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.ComponentActivity
+import coil.load
 import com.vanisetv.app.App
+import com.vanisetv.app.R
+import com.vanisetv.app.data.Backgrounds
 import java.util.Date
 import kotlin.random.Random
 
@@ -106,8 +110,17 @@ abstract class BaseActivity : ComponentActivity() {
     private fun showSaver() {
         val root = findViewById<ViewGroup>(android.R.id.content) ?: return
         val d = resources.displayMetrics.density
-        saverTime = TextView(this).apply { textSize = 64f; setTextColor(Color.parseColor("#4B5A66")); typeface = android.graphics.Typeface.create("sans-serif-light", 0) }
-        saverDate = TextView(this).apply { textSize = 20f; setTextColor(Color.parseColor("#4B5A66")) }
+        val textColor = Color.parseColor("#B3EEF3F6")
+        saverTime = TextView(this).apply {
+            textSize = 64f; setTextColor(textColor); typeface = android.graphics.Typeface.create("sans-serif-light", 0)
+            setShadowLayer(12f, 0f, 2f, Color.BLACK)
+        }
+        saverDate = TextView(this).apply { textSize = 20f; setTextColor(textColor); setShadowLayer(10f, 0f, 2f, Color.BLACK) }
+        // The current home-screen photo, darkened, behind the clock.
+        saverPhoto = ImageView(this).apply { scaleType = ImageView.ScaleType.CENTER_CROP; alpha = 0.45f }
+        saverCredit = TextView(this).apply { textSize = 10f; setTextColor(Color.parseColor("#80EEF3F6")) }
+        showSaverPhoto(Backgrounds.current(this))
+        lastPhotoChange = SystemClock.elapsedRealtime()
         saverBox = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL
             addView(saverTime); addView(saverDate)
@@ -115,6 +128,10 @@ abstract class BaseActivity : ComponentActivity() {
         val overlay = FrameLayout(this).apply {
             setBackgroundColor(Color.BLACK)
             isClickable = true
+            addView(saverPhoto, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+            addView(saverCredit, FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM or Gravity.END).apply {
+                rightMargin = (12 * d).toInt(); bottomMargin = (6 * d).toInt()
+            })
             addView(saverBox, FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
                 leftMargin = (60 * d).toInt(); topMargin = (60 * d).toInt()
             })
@@ -130,6 +147,11 @@ abstract class BaseActivity : ComponentActivity() {
         val now = Date()
         saverTime.text = Formats.timeLine(now, app.prefs.style)
         saverDate.text = "${Formats.dayName(now, app.prefs.lang)}, ${Formats.date(now, app.prefs.style)}"
+        // Change to the next stored photo every 10 minutes so no image stays on the panel for hours.
+        if (SystemClock.elapsedRealtime() - lastPhotoChange > 10 * 60_000L) {
+            lastPhotoChange = SystemClock.elapsedRealtime()
+            showSaverPhoto(Backgrounds.next(this))
+        }
         // Move the clock every 20 seconds so nothing burns into the panel.
         if (SystemClock.elapsedRealtime() - lastMove > 20_000) {
             lastMove = SystemClock.elapsedRealtime()
@@ -144,10 +166,24 @@ abstract class BaseActivity : ComponentActivity() {
         }
     }
 
+    private lateinit var saverPhoto: ImageView
+    private lateinit var saverCredit: TextView
+    private var lastPhotoChange = 0L
+
+    private fun showSaverPhoto(photo: Backgrounds.Photo?) {
+        if (photo == null) { saverCredit.text = ""; return }
+        saverPhoto.load(photo.file) { crossfade(1500) }
+        saverCredit.text = if (photo.artist.isNotBlank()) getString(R.string.photo_credit, photo.artist) else "Wikimedia Commons"
+    }
+
+    /** Called after the screen saver closes (the home screen uses it to follow a changed photo). */
+    protected open fun onSaverHidden() {}
+
     private fun hideSaver() {
         val v = saver ?: return
         (v.parent as? ViewGroup)?.removeView(v)
         saver = null
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        onSaverHidden()
     }
 }

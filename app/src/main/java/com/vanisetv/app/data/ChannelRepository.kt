@@ -129,7 +129,7 @@ class ChannelRepository(private val context: Context, private val prefs: Prefs) 
             "shop" to "Compras", "lifestyle" to "Estilo de vida", "culture" to "Cultura",
             "business" to "Negócios", "comedy" to "Comédia", "cooking" to "Culinária",
             "family" to "Família", "classic" to "Clássicos", "auto" to "Automóveis",
-            "travel" to "Viagem", "weather" to "Clima", "science" to "Ciência", "relax" to "Relaxar",
+            "travel" to "Viagem", "show" to "Programas", "top-news" to "Destaques", "weather" to "Clima", "science" to "Ciência", "relax" to "Relaxar",
         )
     }
 }

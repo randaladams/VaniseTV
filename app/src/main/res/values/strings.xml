@@ -79,4 +79,5 @@
     <string name="about_by_source">By source</string>
     <string name="about_by_source_value">Source 1: %1$d · Source 2: %2$d</string>
     <string name="refresh_failed_source">Source %1$d could not be downloaded, so your current channel list was kept. You can change or clear it in Settings › Channel sources.</string>
+    <string name="live_badge">LIVE</string>
 </resources>

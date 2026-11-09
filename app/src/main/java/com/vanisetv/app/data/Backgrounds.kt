@@ -43,6 +43,22 @@ object Backgrounds {
 
     fun random(context: Context): Photo? = list(context).randomOrNull()
 
+    @Volatile private var current: Photo? = null
+
+    /** The photo in use right now (home screen and screen saver share it). Picked once per app start. */
+    fun current(context: Context): Photo? {
+        current?.takeIf { it.file.exists() }?.let { return it }
+        return random(context).also { current = it }
+    }
+
+    /** Moves on to the next stored photo (the screen saver does this every few minutes). */
+    fun next(context: Context): Photo? {
+        val all = list(context)
+        if (all.isEmpty()) return null
+        val i = all.indexOfFirst { it.file == current?.file }
+        return all[(i + 1) % all.size].also { current = it }
+    }
+
     fun schedule(context: Context) {
         val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
         val wm = WorkManager.getInstance(context)
