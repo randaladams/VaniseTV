@@ -135,14 +135,17 @@ kbd{font:500 12px var(--f-ui);border:1px solid var(--page-line);border-bottom-wi
 .about dd{margin:0;font-variant-numeric:tabular-nums}
 
 /* editor */
-.e-head{position:absolute;left:96px;right:96px;top:64px;display:flex;justify-content:space-between;align-items:baseline}
+.e-head{position:absolute;left:96px;right:96px;top:64px;display:flex;align-items:center;gap:36px}
+.e-head h2{flex:1}
+.e-empty{position:absolute;left:104px;top:200px;font-size:32px;color:var(--tv-muted);font-family:var(--f-body)}
 .e-head h2{margin:0;font-size:60px;font-weight:500}
 .e-count{font-size:32px;color:var(--tv-muted);font-variant-numeric:tabular-nums}
 .e-count b{color:var(--tv-fg);font-weight:500}
 .e-list{position:absolute;left:96px;right:96px;top:180px;bottom:110px;overflow:hidden;display:grid;align-content:start;gap:10px;padding:8px}
-.erow{display:grid;grid-template-columns:96px 1fr 280px 220px;align-items:center;gap:28px;background:var(--tv-tile);border-radius:12px;height:88px;padding:0 28px 0 12px;font-size:32px;cursor:pointer}
+.erow{display:grid;grid-template-columns:96px minmax(0,1fr) auto 220px;align-items:center;gap:28px;background:var(--tv-tile);border-radius:12px;height:88px;padding:0 28px 0 12px;font-size:32px;cursor:pointer}
 .erow .logo{width:84px;height:64px;border-radius:10px;font-size:24px}
-.erow .grp{color:var(--tv-muted);font-size:26px}
+.erow .grp{color:var(--tv-muted);font-size:26px;white-space:nowrap}
+.erow .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .state{justify-self:end;display:flex;align-items:center;gap:14px;font-size:28px}
 .pill{width:84px;height:44px;border-radius:999px;background:#3a4b58;position:relative}
 .pill::after{content:"";position:absolute;top:6px;left:6px;width:32px;height:32px;border-radius:50%;background:#c9d4dc;transition:left .15s}
@@ -254,7 +257,8 @@ kbd{font:500 12px var(--f-ui);border:1px solid var(--page-line);border-bottom-wi
 
         <!-- CHANNEL EDITOR -->
         <section class="screen" id="s-editor">
-          <div class="e-head"><h2 data-t="editor">Channel Editor</h2><div class="e-count" id="ecount"></div></div>
+          <div class="e-head"><h2 data-t="editor">Channel Editor</h2><div class="chip srch" data-f data-act="esearch" id="esrch"></div><div class="e-count" id="ecount"></div></div>
+          <div class="e-empty" id="eempty" hidden></div>
           <div class="e-list" id="elist"></div>
           <div class="e-foot" data-t="eHint"></div>
         </section>
@@ -313,7 +317,7 @@ const CH=[
 const watch={"Rede Globo":["#1",41],"GloboNews":["#2",23],"Record":["#3",9]};
 const CATS=["all","Novelas","News","General","Entertainment","Sports","Kids","Series","Other"];
 const DEF_SRC=["https://iptv-org.github.io/iptv/countries/br.m3u","https://famelack.com/tv/br"];
-const S={query:"",searching:false,src:[...DEF_SRC],editing:null,style:"br",lang:"en",clicks:true,saver:10,screen:"home",prev:"home",playing:null,cat:0,panel:"time"};
+const S={equery:"",esearching:false,query:"",searching:false,src:[...DEF_SRC],editing:null,style:"br",lang:"en",clicks:true,saver:10,screen:"home",prev:"home",playing:null,cat:0,panel:"time"};
 
 /* ---------- every on-screen text, in both languages (mirrors the app string files) ---------- */
 const TX={
@@ -499,7 +503,10 @@ function renderSettings(){
 const GEO=()=>`<span class="geo"><svg width="30" height="30" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"><circle cx="32" cy="32" r="24"/><path d="M8 32h48M32 8c8 8 8 40 0 48M32 8c-8 8-8 40 0 48M12 12l40 40"/></svg>${T("geo")}</span>`;
 function renderEditor(){
   $("#ecount").innerHTML=T("eCount")(CH.filter(c=>c.shown).length,CH.filter(c=>!c.shown).length);
-  $("#elist").innerHTML=CH.map(c=>`<div class="erow ${c.shown?"shown":""}" data-f data-act="toggle" data-name="${c.name}">${logo(c)}<div class="nm">${c.name}${c.flag==="geo"?GEO():c.flag?` <span class="tag warn" style="font-size:20px">${flagText(c.flag)}</span>`:""}</div><div class="grp">${[G(c.group),c.q,T("source")(c.src)].filter(Boolean).join(" · ")}</div><div class="state"><span>${c.shown?T("shown"):T("hidden")}</span><div class="pill"></div></div></div>`).join("");
+  const eq=norm(S.equery); const rows=CH.filter(c=>!eq||norm(c.name).includes(eq)).sort((a,b)=>norm(a.name)<norm(b.name)?-1:1);
+  const sb=$("#esrch");if(!S.esearching){sb.innerHTML=`🔍 ${S.equery||T("search")}`;sb.classList.toggle("has",!!S.equery);}
+  const em=$("#eempty");em.hidden=!(S.equery&&!rows.length);em.textContent=T("searchNone")(S.equery);
+  $("#elist").innerHTML=rows.map(c=>`<div class="erow ${c.shown?"shown":""}" data-f data-act="toggle" data-name="${c.name}">${logo(c)}<div class="nm">${c.name}${c.flag==="geo"?GEO():c.flag?` <span class="tag warn" style="font-size:20px">${flagText(c.flag)}</span>`:""}</div><div class="grp">${[G(c.group),c.q,T("source")(c.src)].filter(Boolean).join(" · ")}</div><div class="state"><span>${c.shown?T("shown"):T("hidden")}</span><div class="pill"></div></div></div>`).join("");
 }
 
 /* ---------- screens & focus ---------- */
@@ -570,6 +577,7 @@ function back(){
   if(!$("#refresh").hidden){ if(dlgMode==="exit"){ closeRefresh(true); exitApp(); return; } return closeRefresh(false); }
   if(S.screen==="full") return go("guide");
   if(S.screen==="guide"&&S.query){S.query="";renderGuide();setFocus($("#srch"));return;}
+  if(S.screen==="editor"&&S.equery){S.equery="";renderEditor();setFocus($("#esrch"));return;}
   if(S.screen==="saver") return go(S.prev||"home");
   if(S.screen!=="home") return go("home");
   showDialog("exit");
@@ -582,6 +590,7 @@ function activate(el){
   else if(a==="tune") tune(el.dataset.name);
   else if(a==="cat"){S.query="";S.cat=(S.cat+1)%CATS.length;renderGuide();}
   else if(a==="search"){openSearch();}
+  else if(a==="esearch"){openEdSearch();}
   else if(a==="set"){S[el.dataset.k]=JSON.parse(el.dataset.v);renderAll();setFocus($(`.opt[data-k="${el.dataset.k}"][data-v='${el.dataset.v}']`));}
   else if(a==="toggle"){const c=CH.find(x=>x.name===el.dataset.name);c.shown=!c.shown;renderEditor();setFocus($(`#elist [data-name="${CSS.escape(c.name)}"]`));}
   else if(a==="editsrc"){const i=+el.dataset.i;S.editing=i;renderSettings();const f=$(`.field[data-i="${i}"]`);setFocus(f);const inp=$("#srcin");inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length);}
@@ -614,9 +623,15 @@ let driftT=null;
 function drift(){ clearInterval(driftT); const f=$("#float"); const place=()=>{f.style.left=(120+Math.random()*1200)+"px";f.style.top=(120+Math.random()*640)+"px";}; place(); driftT=setInterval(()=>{if(S.screen==="saver")place();},4000); }
 
 function openSearch(){S.searching=true;const sb=$("#srch");sb.innerHTML=`🔍 <input id="srchin" value="${S.query.replace(/"/g,"&quot;")}">`;const i=$("#srchin");i.focus();i.addEventListener("input",()=>{S.query=i.value.trim();renderGuide();});}
+function openEdSearch(){S.esearching=true;const sb=$("#esrch");sb.innerHTML=`🔍 <input id="esrchin" value="${S.equery.replace(/"/g,"&quot;")}">`;const i=$("#esrchin");i.focus();i.addEventListener("input",()=>{S.equery=i.value.trim();renderEditor();});}
 function closeSearch(goList){S.searching=false;vp.focus({preventScroll:true});renderGuide();if(goList&&$("#glist [data-f]"))setFocus($("#glist [data-f]"));else setFocus($("#srch"));}
 const vp=$("#vp");
 vp.addEventListener("keydown",e=>{
+  if(e.target.id==="esrchin"){
+    if(e.key==="Enter"||e.key==="Escape"){e.preventDefault();S.esearching=false;vp.focus({preventScroll:true});renderEditor();
+      setFocus(e.key==="Enter"&&$("#elist [data-f]")?$("#elist [data-f]"):$("#esrch"));}
+    return;
+  }
   if(e.target.id==="srchin"){
     if(e.key==="Enter"||e.key==="Escape"){e.preventDefault();closeSearch(e.key==="Enter");}
     return;
@@ -646,7 +661,7 @@ const NOTES={
  guide:["Live TV","New: Search. Press OK on 🔍 Search and type (on the TV the Fire TV keyboard opens); the list narrows as you type and covers all categories, ignoring accents. Try “glo” or “educacao”. Enter goes to the results; Back clears the search.","New: jump by letter. On the Fire TV remote, ⏪ Rewind and ⏩ Fast-forward jump to the previous / next letter; a big letter appears for a moment. In this preview use Page Up / Page Down (or , and .). Lists are now sorted A–Z.","About 8 channels show at once. The small number at the end of each row is the channel's source (1 = iptv-org, 2 = famelack). Left/Right on the category chip changes category. Nothing streams until you press OK; OK again goes full screen.","Freeze protection: after OK the app waits about 0.9 s for the remote to settle; more presses in that window only change which channel loads. Streams that fail or stall for 15 s are retried once, then reported as unavailable."],
  full:["Full screen","The banner shows for a few seconds after a channel change, then hides. Up/Down changes channel. Back returns to the guide with the same channel still playing."],
  settings:["Settings","Switch Language to Português: every screen and dialog in this preview, and in the app, changes language. Channel names stay as the broadcaster writes them.","Channel sources: press OK on an address to type a new one (the Fire TV keyboard opens; here, type and press Enter, or Esc to cancel). Each slot accepts an M3U playlist link or a famelack country page."],
- editor:["Channel Editor","Every channel in the local copy, with a show/hide switch and the source it came from. Geo-blocked channels start hidden, marked with a crossed-out globe."],
+ editor:["Channel Editor","New: 🔍 Search, the same as in Live TV. Type a few letters to find a channel among all ~400; Enter goes to the results, Back clears the search. The category · quality · source column now stays on one line; long channel names are shortened instead.","Every channel in the local copy, with a show/hide switch and the source it came from. Geo-blocked channels start hidden, marked with a crossed-out globe."],
  refresh:["Refresh Channels","Asks before replacing the local file. Hidden choices carry over for channels that still exist in the new list. If either source fails to download, the current list is kept."],
  exit:["Exit confirmation","Back on the home screen asks before closing. Cancel is selected first; pressing Back again exits."],
  saver:["Screen saver","Shows the home screen's photo, darkened, with the clock and date on top. The clock moves every 20 seconds and the photo changes every 10 minutes. Any button wakes it. It never starts while a channel is playing.","The scene here is a drawn stand-in for a real photo."]

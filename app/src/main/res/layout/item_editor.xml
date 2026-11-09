@@ -32,11 +32,12 @@
 
     <TextView
         android:id="@+id/edGroup"
-        android:layout_width="200dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
+        android:layout_marginStart="16dp"
         android:ellipsize="end"
-        android:maxLines="1"
+        android:maxWidth="340dp"
+        android:singleLine="true"
         android:textColor="@color/muted"
         android:textSize="14sp" />
 

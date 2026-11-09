@@ -12,7 +12,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:baselineAligned="true"
+        android:gravity="center_vertical"
         android:orientation="horizontal">
 
         <TextView
@@ -24,13 +24,43 @@
             android:textColor="@color/fg"
             android:textSize="32sp" />
 
+        <!-- Search: OK opens the Fire TV keyboard; the list filters as you type -->
+        <EditText
+            android:id="@+id/search"
+            android:layout_width="220dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_chip"
+            android:drawableStart="@drawable/ic_search"
+            android:drawablePadding="6dp"
+            android:hint="@string/search_hint"
+            android:imeOptions="actionSearch|flagNoExtractUi|flagNoFullscreen"
+            android:inputType="text|textNoSuggestions"
+            android:maxLines="1"
+            android:paddingStart="12dp"
+            android:paddingTop="6dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="6dp"
+            android:textColor="@color/fg"
+            android:textColorHint="@color/muted"
+            android:textSize="15sp" />
+
         <TextView
             android:id="@+id/count"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
             android:textColor="@color/muted"
             android:textSize="17sp" />
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/empty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:textColor="@color/muted"
+        android:textSize="17sp"
+        android:visibility="gone" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/list"
