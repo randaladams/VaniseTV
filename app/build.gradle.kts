@@ -18,8 +18,10 @@ android {
         applicationId = "com.vanisetv.app"
         minSdk = 22          // Fire OS 6 is Android 7.1 (API 25)
         targetSdk = 34
-        versionCode = 2
-        versionName = "1.1.0"
+        // CI passes -PbuildNumber=<run number> so every GitHub build installs over the previous one.
+        val buildNumber = (project.findProperty("buildNumber") as String?)?.toIntOrNull()
+        versionCode = if (buildNumber != null) 100 + buildNumber else 2
+        versionName = "1.1.0" + if (buildNumber != null) " (build $buildNumber)" else ""
     }
 
     signingConfigs {

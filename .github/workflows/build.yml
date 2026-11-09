@@ -1,0 +1,104 @@
+name: Build APK
+
+# Compiles and tests on every push and pull request.
+# Pushes to main also publish the APK to the "Latest build" release;
+# pushing a tag like v1.2.0 publishes a permanent versioned release.
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      KEYSTORE_BASE64: ${{ secrets.VANISETV_KEYSTORE_BASE64 }}
+      KEYSTORE_PASSWORD: ${{ secrets.VANISETV_KEYSTORE_PASSWORD }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # Sign with the same key as local builds so updates install over the existing app.
+      - name: Set up release signing
+        id: signing
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ] && [ -n "$KEYSTORE_PASSWORD" ]; then
+            echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release.jks"
+            {
+              echo "storeFile=$RUNNER_TEMP/release.jks"
+              echo "storePassword=$KEYSTORE_PASSWORD"
+              echo "keyAlias=vanisetv"
+              echo "keyPassword=$KEYSTORE_PASSWORD"
+            } > keystore.properties
+            echo "signed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Signing secrets are not set. This APK is signed with a temporary debug key and will not install over the app already on the Fire TV."
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Test and build
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon testReleaseUnitTest assembleRelease -PbuildNumber=${{ github.run_number }}
+
+      - name: Name the APK
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/release/app-release.apk dist/VaniseTV.apk
+          echo "Build ${{ github.run_number }} · commit ${GITHUB_SHA::7}" > dist/build-info.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: VaniseTV-build-${{ github.run_number }}
+          path: dist/
+          retention-days: 30
+
+      - name: Clean up signing files
+        if: always()
+        run: rm -f keystore.properties "$RUNNER_TEMP/release.jks"
+
+      # Rolling release that always holds the newest build from main.
+      - name: Move the latest-build tag
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.signing.outputs.signed == 'true'
+        run: |
+          git tag -f latest-build
+          git push -f origin latest-build
+
+      - name: Publish "Latest build" release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.signing.outputs.signed == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest-build
+          name: Latest build
+          prerelease: true
+          make_latest: false
+          body: |
+            Newest build from main (build ${{ github.run_number }}, commit ${{ github.sha }}).
+            Install on the Fire TV: `adb install -r VaniseTV.apk`
+          files: dist/VaniseTV.apk
+
+      - name: Publish versioned release
+        if: startsWith(github.ref, 'refs/tags/v') && steps.signing.outputs.signed == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          name: VaniseTV ${{ github.ref_name }}
+          generate_release_notes: true
+          make_latest: true
+          files: dist/VaniseTV.apk

@@ -36,6 +36,25 @@ The APK is written to `app/build/outputs/apk/release/app-release.apk`.
 
 Unit tests (playlist parsing): `./gradlew testReleaseUnitTest`
 
+## Automatic builds (GitHub Actions)
+
+`.github/workflows/build.yml` runs the tests and builds the APK on every push and pull request.
+
+- **Push to `main`:** the APK is attached to the **Latest build** release (pre-release, replaced each time):
+  `https://github.com/randaladams/VaniseTV/releases/download/latest-build/VaniseTV.apk`
+- **Push a tag like `v1.2.0`:** a permanent release named *VaniseTV v1.2.0* is created with the APK.
+- Every run also keeps the APK as a downloadable artifact for 30 days.
+- CI builds use version code `100 + run number`, so each one installs over the previous one.
+
+Releases are only published when these repository secrets exist (Settings › Secrets and variables › Actions):
+
+| Secret | Value |
+|---|---|
+| `VANISETV_KEYSTORE_BASE64` | the release keystore file, base64-encoded |
+| `VANISETV_KEYSTORE_PASSWORD` | the `storePassword` from `keystore.properties` |
+
+Without them the build still runs, but the APK is signed with a throwaway key and won't install over an existing copy.
+
 ## Install on the Fire TV stick
 
 1. On the Fire TV: **Settings › My Fire TV › Developer options › ADB debugging: ON** (and **Apps from Unknown Sources: ON**).
