@@ -1,0 +1,541 @@
+<title>VaniseTV Screens</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: page chrome (themed) wraps a fixed 1920x1080 TV stage scaled to fit; the stage keeps one dark 10-foot look. */
+:root{
+  --page-bg:#eef1f4; --page-fg:#18222c; --page-muted:#5a6876; --page-line:#cfd7df; --page-card:#ffffff; --page-accent:#b26b00;
+  --tv-bg:#0c1620; --tv-panel:#14222e; --tv-tile:#1b2d3b; --tv-line:#2c4354; --tv-fg:#eef3f6; --tv-muted:#8ea3b3;
+  --tv-focus:#f5b83d; --tv-ok:#4fc28a; --tv-off:#e06a5a;
+  --f-ui:"Lexend","Segoe UI",system-ui,sans-serif; --f-body:"Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--page-bg:#0f151b;--page-fg:#e4eaef;--page-muted:#93a3b1;--page-line:#26323d;--page-card:#161f27;--page-accent:#f5b83d;color-scheme:dark}}
+:root[data-theme="dark"]{--page-bg:#0f151b;--page-fg:#e4eaef;--page-muted:#93a3b1;--page-line:#26323d;--page-card:#161f27;--page-accent:#f5b83d;color-scheme:dark}
+body{background:var(--page-bg);color:var(--page-fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1240px;margin:0 auto;padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:16px}
+header h1{font-family:var(--f-ui);font-weight:500;font-size:26px;margin:0;text-wrap:balance}
+header p{margin:4px 0 0;color:var(--page-muted);max-width:70ch}
+.tabs{display:flex;flex-wrap:wrap;gap:8px}
+.tabs button{font:500 14px var(--f-ui);padding:8px 14px;border-radius:999px;border:1px solid var(--page-line);background:var(--page-card);color:var(--page-fg);cursor:pointer}
+.tabs button[aria-pressed="true"]{border-color:var(--page-accent);color:var(--page-accent)}
+.tabs button:focus-visible{outline:2px solid var(--page-accent);outline-offset:2px}
+.tvframe{background:#05090d;border-radius:14px;padding:10px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.viewport{position:relative;width:100%;aspect-ratio:16/9;max-width:100%;overflow:hidden;border-radius:6px;outline:none}
+.viewport:focus-visible{box-shadow:0 0 0 3px var(--page-accent)}
+.stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;background:var(--tv-bg);color:var(--tv-fg);font-family:var(--f-ui);overflow:hidden}
+.keys{display:flex;flex-wrap:wrap;gap:6px 18px;color:var(--page-muted);font-size:14px}
+kbd{font:500 12px var(--f-ui);border:1px solid var(--page-line);border-bottom-width:2px;border-radius:5px;padding:1px 6px;background:var(--page-card);color:var(--page-fg)}
+.note{background:var(--page-card);border:1px solid var(--page-line);border-radius:10px;padding:14px 18px}
+.note h2{font:600 16px var(--f-ui);margin:0 0 6px}
+.note ul{margin:0;padding-left:20px;display:grid;gap:4px}
+.note li{max-width:95ch}
+
+/* ---------- TV stage ---------- */
+.stage *,.stage *::before,.stage *::after{box-sizing:border-box}
+.s-item b{font-weight:400}
+.geo{display:inline-flex;align-items:center;gap:8px;font-size:22px;color:var(--tv-focus);margin-left:14px;vertical-align:middle}
+.screen{position:absolute;inset:0;display:none}
+.screen.on{display:block}
+[data-f]{transition:transform .15s ease, box-shadow .15s ease, background .15s ease}
+.focus{box-shadow:0 0 0 6px var(--tv-focus), 0 18px 40px rgba(0,0,0,.5)!important}
+.topbar{position:absolute;left:96px;right:96px;top:56px;display:flex;justify-content:space-between;align-items:baseline}
+.clock{font-size:132px;font-weight:300;letter-spacing:-2px;font-variant-numeric:tabular-nums;line-height:1}
+.clock small{font-size:48px;font-weight:400;margin-left:12px;letter-spacing:0}
+.date{font-size:64px;font-weight:300;text-align:right;line-height:1.05;font-variant-numeric:tabular-nums}
+.date span{display:block;font-size:34px;color:var(--tv-muted);font-weight:400}
+.grid4{position:absolute;left:96px;right:96px;top:250px;display:grid;grid-template-columns:1fr 1fr;gap:28px}
+.tile{background:var(--tv-tile);border-radius:22px;height:250px;padding:34px 40px;display:flex;align-items:center;gap:34px;cursor:pointer;position:relative}
+.tile.focus{transform:scale(1.03);background:#22394a}
+.logo{flex:none;width:150px;height:150px;border-radius:24px;display:grid;place-items:center;font-weight:600;font-size:48px;color:#fff}
+.tile h3{margin:0;font-size:52px;font-weight:500;line-height:1.1}
+.tile p{margin:10px 0 0;font-size:28px;color:var(--tv-muted)}
+.rank{position:absolute;top:22px;right:30px;font-size:26px;color:var(--tv-muted)}
+.tile.live{background:linear-gradient(120deg,#1d3b52,#173042)}
+.tile.live .logo{background:var(--tv-off);font-size:40px;letter-spacing:1px}
+.divider{position:absolute;left:96px;right:96px;top:832px;height:2px;background:var(--tv-line)}
+.grid3{position:absolute;left:96px;right:96px;top:868px;display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+.small{background:var(--tv-panel);border-radius:18px;height:140px;display:flex;align-items:center;gap:26px;padding:0 36px;font-size:40px;cursor:pointer}
+.small.focus{transform:scale(1.03);background:#1f3445}
+.ico{width:64px;height:64px;flex:none}
+.ico path,.ico circle,.ico rect{fill:none;stroke:var(--tv-fg);stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
+
+/* guide */
+.g-info{position:absolute;left:96px;top:64px;width:900px}
+.chip{display:inline-block;font-size:28px;padding:8px 26px;border-radius:999px;background:#3a5162;cursor:pointer}
+.chip.focus{background:#516b7e}
+.g-info h2{font-size:64px;font-weight:500;margin:28px 0 6px;line-height:1.1}
+.g-meta{font-size:30px;color:var(--tv-muted);display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.tag{border:2px solid var(--tv-muted);border-radius:6px;padding:0 10px;font-size:24px}
+.tag.warn{border-color:var(--tv-focus);color:var(--tv-focus)}
+.g-status{margin-top:26px;font-size:28px;color:var(--tv-fg)}
+.video{position:absolute;right:96px;top:56px;width:760px;height:428px;border-radius:14px;overflow:hidden;background:#000;display:grid;place-items:center}
+.video .pic{position:absolute;inset:0;opacity:0;transition:opacity .4s}
+.video.playing .pic{opacity:1}
+.video .msg{position:relative;font-size:30px;color:var(--tv-muted);text-align:center;padding:0 40px}
+.video.playing .msg{display:none}
+.vbadge{position:absolute;left:18px;bottom:16px;background:rgba(0,0,0,.6);border-radius:8px;padding:6px 14px;font-size:24px;display:none;align-items:center;gap:10px}
+.video.playing .vbadge{display:flex}
+.spinner{width:64px;height:64px;border-radius:50%;border:6px solid #2b3b47;border-top-color:var(--tv-focus);animation:spin 1s linear infinite;margin:0 auto 18px;display:none}
+.video.tuning .spinner{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.g-list{position:absolute;left:96px;right:96px;top:510px;bottom:30px;overflow:hidden;display:grid;align-content:start;gap:6px;padding:6px}
+.row{display:grid;grid-template-columns:76px 1fr 260px 100px 56px;align-items:center;gap:22px;background:var(--tv-tile);border-radius:8px;height:62px;padding:0 20px 0 8px;font-size:28px;cursor:pointer}
+.row .logo{width:68px;height:46px;border-radius:7px;font-size:20px}
+.row .grp{color:var(--tv-muted);font-size:23px}
+.row .q{color:var(--tv-muted);font-size:21px;text-align:right}
+.srcb{justify-self:end;font-size:18px;font-weight:600;border:2px solid var(--tv-muted);color:var(--tv-muted);border-radius:6px;padding:0 8px;line-height:28px}
+.srcb.s2{border-color:#6fb3e0;color:#6fb3e0}
+.row.focus .srcb{border-color:#34495a;color:#34495a}
+.field{display:flex;align-items:center;gap:20px;padding:18px 26px;border-radius:12px;background:var(--tv-tile);cursor:pointer;margin-bottom:8px}
+.field .lbl{font-size:30px;width:170px;flex:none}
+.field .url{flex:1;min-width:0;font-size:26px;background:#0c1620;border:2px solid var(--tv-line);border-radius:8px;padding:10px 16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--tv-fg)}
+.field input.url{font-family:var(--f-ui);outline:none;border-color:var(--tv-focus)}
+.field.focus{background:#2a4558}
+.srcstat{font-size:24px;color:var(--tv-muted);margin:0 0 22px 216px;font-family:var(--f-body)}
+.srcnote{font-size:24px;color:var(--tv-muted);font-family:var(--f-body);margin:18px 0 0}
+.minibtn{display:inline-block;font-size:28px;padding:14px 30px;border-radius:12px;background:var(--tv-tile);cursor:pointer;margin-top:14px}
+.minibtn.focus{background:#e9eef2;color:#0c1620}
+.row.focus{background:#e9eef2;color:#0c1620}
+.row.focus .grp,.row.focus .q{color:#34495a}
+.row .now{color:var(--tv-ok);font-size:24px;margin-left:14px}
+
+/* fullscreen */
+.fs .pic{position:absolute;inset:0}
+.banner{position:absolute;left:0;right:0;bottom:0;padding:40px 96px 56px;background:linear-gradient(transparent,rgba(0,0,0,.85));display:flex;align-items:center;gap:36px}
+.banner .logo{width:120px;height:120px;font-size:40px}
+.banner h2{margin:0;font-size:56px;font-weight:500}
+.banner p{margin:4px 0 0;font-size:28px;color:#c7d3dc}
+.banner .clk{margin-left:auto;font-size:56px;font-weight:300;font-variant-numeric:tabular-nums}
+
+/* settings */
+.s-title{position:absolute;left:96px;top:64px;font-size:60px;font-weight:500}
+.s-menu{position:absolute;left:96px;top:180px;width:620px;display:grid;gap:16px}
+.s-item{background:var(--tv-tile);border-radius:14px;padding:26px 32px;font-size:36px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.s-item span{color:var(--tv-muted);font-size:28px}
+.s-item.sel{background:#22394a}
+.s-item.focus{background:#e9eef2;color:#0c1620}
+.s-item.focus span{color:#34495a}
+.s-panel{position:absolute;left:780px;right:96px;top:180px;bottom:80px;background:var(--tv-panel);border-radius:18px;padding:48px 56px}
+.s-panel h3{margin:0 0 8px;font-size:44px;font-weight:500}
+.s-panel .hint{font-size:28px;color:var(--tv-muted);margin:0 0 34px;font-family:var(--f-body)}
+.opts{display:grid;gap:16px}
+.opt{display:flex;align-items:center;gap:26px;font-size:36px;padding:22px 30px;border-radius:12px;background:var(--tv-tile);cursor:pointer}
+.opt .radio{width:40px;height:40px;border-radius:50%;border:4px solid var(--tv-muted);flex:none;display:grid;place-items:center}
+.opt.chk .radio{border-color:var(--tv-focus)}
+.opt.chk .radio::after{content:"";width:20px;height:20px;border-radius:50%;background:var(--tv-focus)}
+.opt .ex{margin-left:auto;color:var(--tv-muted);font-size:30px;font-variant-numeric:tabular-nums}
+.opt.focus{background:#2a4558}
+.about{display:grid;grid-template-columns:auto 1fr;gap:20px 48px;font-size:34px}
+.about dt{color:var(--tv-muted)}
+.about dd{margin:0;font-variant-numeric:tabular-nums}
+
+/* editor */
+.e-head{position:absolute;left:96px;right:96px;top:64px;display:flex;justify-content:space-between;align-items:baseline}
+.e-head h2{margin:0;font-size:60px;font-weight:500}
+.e-count{font-size:32px;color:var(--tv-muted);font-variant-numeric:tabular-nums}
+.e-count b{color:var(--tv-fg);font-weight:500}
+.e-list{position:absolute;left:96px;right:96px;top:180px;bottom:110px;overflow:hidden;display:grid;align-content:start;gap:10px;padding:8px}
+.erow{display:grid;grid-template-columns:96px 1fr 280px 220px;align-items:center;gap:28px;background:var(--tv-tile);border-radius:12px;height:88px;padding:0 28px 0 12px;font-size:32px;cursor:pointer}
+.erow .logo{width:84px;height:64px;border-radius:10px;font-size:24px}
+.erow .grp{color:var(--tv-muted);font-size:26px}
+.state{justify-self:end;display:flex;align-items:center;gap:14px;font-size:28px}
+.pill{width:84px;height:44px;border-radius:999px;background:#3a4b58;position:relative}
+.pill::after{content:"";position:absolute;top:6px;left:6px;width:32px;height:32px;border-radius:50%;background:#c9d4dc;transition:left .15s}
+.erow.shown .pill{background:var(--tv-ok)}
+.erow.shown .pill::after{left:46px;background:#fff}
+.erow:not(.shown) .nm{color:var(--tv-muted);text-decoration:line-through}
+.erow.focus{background:#2a4558}
+.e-foot{position:absolute;left:96px;right:96px;bottom:36px;font-size:26px;color:var(--tv-muted);font-family:var(--f-body)}
+
+/* refresh dialog */
+.scrim{position:absolute;inset:0;background:rgba(5,10,14,.78);display:grid;place-items:center}
+.dialog{width:1100px;background:var(--tv-panel);border-radius:24px;padding:60px 70px;border:2px solid var(--tv-line)}
+.dialog h2{margin:0 0 16px;font-size:54px;font-weight:500}
+.dialog p{font-size:32px;color:#c6d3dc;margin:0 0 14px;font-family:var(--f-body)}
+.dialog .src{font-size:26px;color:var(--tv-muted);word-break:break-all}
+.btns{display:flex;gap:24px;margin-top:40px}
+.btn{font-size:34px;padding:20px 48px;border-radius:14px;background:var(--tv-tile);cursor:pointer}
+.btn.focus{background:#e9eef2;color:#0c1620}
+.bar{height:14px;border-radius:7px;background:#25394a;overflow:hidden;margin:28px 0 10px}
+.bar i{display:block;height:100%;width:0;background:var(--tv-focus);transition:width .2s}
+
+/* screensaver */
+.saver{background:#000}
+.saver .float{position:absolute;color:#4b5a66;font-weight:300;text-align:center;transition:left 2s ease,top 2s ease}
+.saver .float .t{font-size:140px;font-variant-numeric:tabular-nums}
+.saver .float .d{font-size:40px}
+@media (prefers-reduced-motion: reduce){[data-f],.saver .float{transition:none}.spinner{animation:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>VaniseTV — screen preview</h1>
+    <p>Clickable mockup of the Fire TV app before any code is written. Click the TV, then drive it with the arrow keys like a Fire TV remote. Channel names are real entries from the Brazil list (402 channels as of today).</p>
+  </header>
+
+  <nav class="tabs" aria-label="Screens">
+    <button data-go="home" aria-pressed="true">Home</button>
+    <button data-go="guide">Live TV</button>
+    <button data-go="full">Full screen</button>
+    <button data-go="settings">Settings</button>
+    <button data-go="editor">Channel Editor</button>
+    <button data-go="refresh">Refresh Channels</button>
+    <button data-go="saver">Screen saver</button>
+  </nav>
+
+  <div class="tvframe">
+    <div class="viewport" id="vp" tabindex="0" aria-label="TV screen, use arrow keys">
+      <div class="stage" id="stage">
+
+        <!-- HOME -->
+        <section class="screen on" id="s-home">
+          <div class="topbar">
+            <div class="clock" data-clock></div>
+            <div class="date" data-date></div>
+          </div>
+          <div class="grid4" id="top3"></div>
+          <div class="divider"></div>
+          <div class="grid3">
+            <div class="small" data-f data-act="settings"><svg class="ico" viewBox="0 0 64 64"><circle cx="32" cy="32" r="9"/><path d="M32 6v9M32 49v9M6 32h9M49 32h9M13.6 13.6l6.4 6.4M44 44l6.4 6.4M13.6 50.4l6.4-6.4M44 20l6.4-6.4"/></svg><span data-t="settings">Settings</span></div>
+            <div class="small" data-f data-act="editor"><svg class="ico" viewBox="0 0 64 64"><path d="M10 16h30M10 32h22M10 48h18M44 50l14-14-6-6-14 14-2 8z"/></svg><span data-t="editor">Channel Editor</span></div>
+            <div class="small" data-f data-act="refresh"><svg class="ico" viewBox="0 0 64 64"><path d="M52 32a20 20 0 1 1-6-14.2M52 10v10H42"/></svg><span data-t="refresh">Refresh Channels</span></div>
+          </div>
+        </section>
+
+        <!-- LIVE TV GUIDE -->
+        <section class="screen" id="s-guide">
+          <div class="g-info">
+            <div class="chip" data-f data-act="cat" id="cat">All channels</div>
+            <h2 id="g-name">Rede Globo</h2>
+            <div class="g-meta" id="g-meta"></div>
+            <div class="g-status" id="g-status">Press OK to watch here. Press OK again for full screen.</div>
+          </div>
+          <div class="video" id="video">
+            <div class="pic" id="pic"></div>
+            <div class="msg"><div class="spinner"></div><span id="vmsg">Nothing playing yet</span></div>
+            <div class="vbadge"><svg width="30" height="30" viewBox="0 0 64 64"><path d="M10 24h10l14-12v40L20 40H10z" fill="#fff"/><path d="M44 22a14 14 0 0 1 0 20M50 14a24 24 0 0 1 0 36" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/></svg><span id="vlabel">LIVE</span></div>
+          </div>
+          <div class="g-list" id="glist"></div>
+        </section>
+
+        <!-- FULLSCREEN -->
+        <section class="screen fs" id="s-full">
+          <div class="pic" id="fpic"></div>
+          <div class="banner">
+            <div class="logo" id="flogo"></div>
+            <div><h2 id="fname"></h2><p id="fmeta"></p></div>
+            <div class="clk" data-clock></div>
+          </div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section class="screen" id="s-settings">
+          <div class="s-title" data-t="settings">Settings</div>
+          <div class="s-menu">
+            <div class="s-item" data-f data-panel="time"><b data-t="sTime">Time &amp; date style</b> <span id="sv-time"></span></div>
+            <div class="s-item" data-f data-panel="lang"><b data-t="sLang">Language</b> <span id="sv-lang"></span></div>
+            <div class="s-item" data-f data-panel="sound"><b data-t="sSound">Remote click sounds</b> <span id="sv-sound"></span></div>
+            <div class="s-item" data-f data-panel="saver"><b data-t="sSaver">Screen saver</b> <span id="sv-saver"></span></div>
+            <div class="s-item" data-f data-panel="sources"><b data-t="sSources">Channel sources</b> <span>2</span></div>
+            <div class="s-item" data-f data-panel="about"><b data-t="sAbout">About</b> <span>v1.0.0</span></div>
+          </div>
+          <div class="s-panel" id="spanel"></div>
+        </section>
+
+        <!-- CHANNEL EDITOR -->
+        <section class="screen" id="s-editor">
+          <div class="e-head"><h2>Channel Editor</h2><div class="e-count" id="ecount"></div></div>
+          <div class="e-list" id="elist"></div>
+          <div class="e-foot">OK shows or hides a channel. Hidden channels disappear from Live TV and from the top 3 tiles. Changes are saved to the local channel file right away.</div>
+        </section>
+
+        <!-- SCREEN SAVER -->
+        <section class="screen saver" id="s-saver">
+          <div class="float" id="float"><div class="t" data-clock></div><div class="d" data-dateline></div></div>
+        </section>
+
+        <!-- REFRESH DIALOG (overlay) -->
+        <div class="scrim" id="refresh" hidden>
+          <div class="dialog">
+            <h2 id="r-title">Refresh channels?</h2>
+            <p id="r-body">This downloads both channel sources, combines them without duplicates and replaces the local copy. Channels you hid stay hidden if they are still in the new list.</p>
+            <p class="src">Source 1: iptv-org.github.io/iptv/countries/br.m3u<br>Source 2: famelack.com/tv/br</p>
+            <div class="bar" id="rbar" hidden><i></i></div>
+            <div class="btns" id="rbtns">
+              <div class="btn" data-f data-act="doRefresh">Refresh now</div>
+              <div class="btn" data-f data-act="back">Cancel</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="keys">
+    <span><kbd>←</kbd> <kbd>↑</kbd> <kbd>→</kbd> <kbd>↓</kbd> move</span>
+    <span><kbd>Enter</kbd> OK / select</span>
+    <span><kbd>Esc</kbd> or <kbd>Backspace</kbd> Back</span>
+    <span>Mouse clicks work too</span>
+  </div>
+
+  <div class="note" id="note"></div>
+</div>
+
+<script>
+(function(){
+/* ---------- sample data (real names from br.m3u) ---------- */
+const PALETTE=["#1f6fb2","#b23a3a","#2f8a5b","#8a4fb2","#c27a1a","#2a8a8a","#a83f7a","#4d6b2f"];
+const CH=[
+ ["Rede Globo","General","1080p",""],["GloboNews","News","1080p",""],["Record","General","720p",""],
+ ["Band","General","720p",""],["CNN Brasil","News","1080p",""],["Record News","News","720p",""],
+ ["Jovem Pan News","News","720p",""],["BandNews","News","1080p",""],["Band Sports","Sports","1080p",""],
+ ["Amazon Sat","General","1080p",""],["Arte 1","Entertainment","720p",""],["AXN (Brazil)","Entertainment","720p",""],
+ ["Globoplay Novelas","Series","1080p",""],["Canal Educacao","Education","720p",""],["Box Kids TV","Kids","720p",""],
+ ["Rede Gospel","Religious","1080p",""],["AgroBrasil TV","General","720p","Not 24/7"],["RecordTV Rio","General","720p","Geo-blocked"],
+ ["Rede Brasil","General","1080p",""],["Canal do Boi","Outdoor","720p",""],["Pluto TV Novelas BR","Series","",""],["TNT Novelas Brazil","Series","720p",""],
+ ["ge Fast","Other","","",2],["Nickelodeon","Other","","",2],["Play TV","Other","","",2],["REDE SPi","Other","","",2],
+ ["CINDIE TV","Other","","",2],["IMPD TV Worldwide","Other","","",2],["Rádio Temas de Novelas","Other","","",2]
+].map((c,i)=>({name:c[0],group:c[1],q:c[2],flag:c[3],src:c[4]||1,shown:!/Geo/.test(c[3]),color:PALETTE[i%PALETTE.length],
+  abbr:c[0].replace(/\(.*?\)/g,"").split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase()}));
+const watch={"Rede Globo":["#1",41],"GloboNews":["#2",23],"Record":["#3",9]};
+const CATS=["All channels","Novelas","News","General","Entertainment","Sports","Kids","Series","Other"];
+const DEF_SRC=["https://iptv-org.github.io/iptv/countries/br.m3u","https://famelack.com/tv/br"];
+const S={src:[...DEF_SRC],editing:null,style:"br",lang:"en",clicks:true,saver:"10 minutes",screen:"home",prev:"home",playing:null,cat:0,panel:"time"};
+const TX={
+ en:{settings:"Settings",editor:"Channel Editor",refresh:"Refresh Channels",live:"LIVE TV",liveSub:n=>`${n} channels · all categories`,watched:h=>`${h} h watched in the last 4 weeks`,
+   sTime:"Time & date style",sSources:"Channel sources",sLang:"Language",sSound:"Remote click sounds",sSaver:"Screen saver",sAbout:"About",us:"United States",br:"Brazil",
+   days:["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]},
+ pt:{settings:"Configurações",editor:"Editor de canais",refresh:"Atualizar canais",live:"TV AO VIVO",liveSub:n=>`${n} canais · todas as categorias`,watched:h=>`${h} h assistidas nas últimas 4 semanas`,
+   sTime:"Formato de hora e data",sSources:"Fontes de canais",sLang:"Idioma",sSound:"Sons do controle",sSaver:"Protetor de tela",sAbout:"Sobre",us:"Estados Unidos",br:"Brasil",
+   days:["domingo","segunda-feira","terça-feira","quarta-feira","quinta-feira","sexta-feira","sábado"]}};
+const T=k=>TX[S.lang][k];
+function applyLang(){$$("[data-t]").forEach(e=>e.textContent=T(e.dataset.t))}
+function fmtDate(d){return S.style==="br"?`${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`:`${pad(d.getMonth()+1)}/${pad(d.getDate())}/${d.getFullYear()}`}
+function fmtTime(h,m){if(S.style==="br")return `${pad(h)}:${pad(m)}`;return `${h%12||12}:${pad(m)} ${h<12?"AM":"PM"}`}
+
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const logo=(c,cls="logo")=>`<div class="${cls}" style="background:${c.color}">${c.abbr}</div>`;
+
+/* ---------- clock ---------- */
+function pad(n){return String(n).padStart(2,"0")}
+function tick(){
+  const d=new Date(); let h=d.getHours(), m=pad(d.getMinutes()); let t;
+  if(S.style==="br") t=`${pad(h)}:${m}`; else { const ap=h<12?"AM":"PM"; h=h%12||12; t=`${h}:${m}<small>${ap}</small>`; }
+  const date=fmtDate(d), dow=T("days")[d.getDay()];
+  $$("[data-clock]").forEach(e=>e.innerHTML=t);
+  $$("[data-date]").forEach(e=>e.innerHTML=`${date}<span>${dow}</span>`);
+  $$("[data-dateline]").forEach(e=>e.textContent=`${dow}, ${date}`);
+}
+setInterval(tick,1000);
+
+/* ---------- home tiles ---------- */
+function renderHome(){
+  const top=CH.filter(c=>c.shown&&watch[c.name]).slice(0,3);
+  $("#top3").innerHTML=top.map(c=>`<div class="tile" data-f data-act="play" data-name="${c.name}">${logo(c)}<div><h3>${c.name}</h3><p>${T("watched")(watch[c.name][1])}</p></div><div class="rank">${watch[c.name][0]}</div></div>`).join("")+
+   `<div class="tile live" data-f data-act="guide"><div class="logo">LIVE</div><div><h3>${T("live")}</h3><p>${T("liveSub")(CH.filter(c=>c.shown).length)}</p></div></div>`;
+  applyLang();
+}
+
+/* ---------- guide ---------- */
+function guideRows(){const cat=CATS[S.cat];return CH.filter(c=>c.shown&&(cat==="All channels"||(cat==="Novelas"?/novela/i.test(c.name):c.group===cat)))}
+const srcBadge=c=>`<div class="srcb ${c.src===2?"s2":""}" title="Source ${c.src}">${c.src}</div>`;
+function renderGuide(){
+  $("#cat").textContent=CATS[S.cat]+"  ▾";
+  $("#glist").innerHTML=guideRows().map(c=>`<div class="row" data-f data-act="tune" data-name="${c.name}">${logo(c)}<div>${c.name}${S.playing===c.name?'<span class="now">● Playing</span>':""}</div><div class="grp">${c.group}</div><div class="q">${c.q}</div>${srcBadge(c)}</div>`).join("");
+}
+function showInfo(c){
+  $("#g-name").textContent=c.name;
+  $("#g-meta").innerHTML=`<span>${c.group}</span>${c.q?`<span class="tag">${c.q}</span>`:""}<span class="tag">Source ${c.src}</span>${c.flag?`<span class="tag warn">${c.flag}</span>`:""}`;
+}
+let tuneTimer=null;
+const SETTLE=900; // ms the remote must be still before a stream starts
+function tune(name){
+  const v=$("#video");
+  if(S.playing===name && !tuneTimer){ openFull(name); return; }
+  clearTimeout(tuneTimer);
+  v.classList.remove("playing"); v.classList.add("tuning");
+  $("#vmsg").textContent=`Tuning to ${name}…`;
+  $("#g-status").textContent="Waiting for the remote to settle, then starting the stream. Extra presses only change which channel loads.";
+  tuneTimer=setTimeout(()=>{
+    tuneTimer=null; S.playing=name; const c=CH.find(x=>x.name===name);
+    v.classList.remove("tuning"); v.classList.add("playing");
+    $("#pic").style.background=fakeVideo(c);
+    $("#vlabel").textContent=`LIVE · ${name} · sound on`;
+    $("#g-status").textContent="Playing with sound. Press OK again for full screen.";
+    const keep=focused&&focused.dataset.name; renderGuide(); if(keep) setFocus($(`#glist [data-name="${CSS.escape(keep)}"]`));
+  },SETTLE);
+}
+function fakeVideo(c){return `radial-gradient(circle at 30% 35%, ${c.color}cc, transparent 55%), radial-gradient(circle at 75% 70%, #f5b83d55, transparent 50%), linear-gradient(135deg,#0b1218,#22313c)`}
+function openFull(name){
+  const c=CH.find(x=>x.name===name)||CH[0]; S.playing=c.name;
+  $("#fpic").style.background=fakeVideo(c);
+  $("#flogo").outerHTML=`<div class="logo" id="flogo" style="background:${c.color}">${c.abbr}</div>`;
+  $("#fname").textContent=c.name; $("#fmeta").textContent=`${c.group} · ${c.q} · Back returns to the guide`;
+  go("full");
+}
+
+/* ---------- settings ---------- */
+const PANELS={
+ time:()=>`<h3>${T("sTime")}</h3><p class="hint">Applies to the home screen, the full-screen banner, the screen saver and About.</p>
+   <div class="opts">${opt("style","us",T("us"),"7:45 PM · 11/09/2026")}${opt("style","br",T("br"),"19:45 · 09/11/2026")}</div>`,
+ lang:()=>`<h3>${T("sLang")}</h3><p class="hint">Changes every menu and message in the app. In this preview only the home screen and settings labels switch.</p>
+   <div class="opts">${opt("lang","en","English")}${opt("lang","pt","Português (Brasil)")}</div>`,
+ sound:()=>`<h3>Remote click sounds</h3><p class="hint">A short tick when you move or select in the menus. Never plays over a channel.</p>
+   <div class="opts">${opt("clicks",true,"On")}${opt("clicks",false,"Off")}</div>`,
+ saver:()=>`<h3>Screen saver</h3><p class="hint">Dims the screen after the menus sit idle. It never starts while a channel is playing full screen.</p>
+   <div class="opts">${["3 minutes","10 minutes","1 hour","Never"].map(v=>opt("saver",v,v)).join("")}</div>`,
+ sources:()=>`<h3>${T("sSources")}</h3><p class="hint">Both lists are downloaded and combined. A channel found in both is kept once, from Source 1. Press OK on an address to change it.</p>
+   ${[0,1].map(i=>`<div class="field" data-f data-act="editsrc" data-i="${i}"><span class="lbl">Source ${i+1}</span>${S.editing===i?`<input class="url" id="srcin" value="${S.src[i]}">`:`<span class="url">${S.src[i]||"(empty: not used)"}</span>`}</div>
+   <div class="srcstat">${i===0?"Playlist (M3U) · 402 channels on 09/11/2026":"famelack list · 132 channels: 104 already in Source 1, 21 YouTube-only skipped, 7 new"}</div>`).join("")}
+   <div class="minibtn" data-f data-act="resetsrc">Restore default addresses</div>
+   <p class="srcnote">Changes take effect on the next Refresh Channels. Supported: M3U playlist links and famelack country pages (famelack.com/tv/xx).</p>`,
+ about:()=>`<h3>About</h3><p class="hint">Read-only.</p><dl class="about">
+   <dt>App version</dt><dd>1.1.0 (build 2)</dd>
+   <dt>Fire OS</dt><dd>6.7.1.1 (Android 7.1)</dd>
+   <dt>Active channels</dt><dd>${CH.filter(c=>c.shown).length} of ${CH.length} in this preview · 409 in the full list</dd>
+   <dt>By source</dt><dd>Source 1: 402 · Source 2: 7</dd>
+   <dt>Channel list downloaded</dt><dd>${fmtDate(new Date(2026,10,9))} ${fmtTime(7,12)}</dd></dl>`
+};
+function opt(key,val,label,extra=""){return `<div class="opt ${S[key]===val?"chk":""}" data-f data-act="set" data-k="${key}" data-v='${JSON.stringify(val)}'><div class="radio"></div>${label}${extra?`<span class="ex">${extra}</span>`:""}</div>`}
+function renderSettings(){
+  applyLang();
+  $("#sv-time").textContent=T(S.style);
+  $("#sv-lang").textContent=S.lang==="en"?"English":"Português";
+  $("#sv-sound").textContent=S.clicks?"On":"Off";
+  $("#sv-saver").textContent=S.saver;
+  $$(".s-item").forEach(e=>e.classList.toggle("sel",e.dataset.panel===S.panel));
+  $("#spanel").innerHTML=PANELS[S.panel]();
+}
+
+/* ---------- editor ---------- */
+const GEO=`<span class="geo"><svg width="30" height="30" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"><circle cx="32" cy="32" r="24"/><path d="M8 32h48M32 8c8 8 8 40 0 48M32 8c-8 8-8 40 0 48M12 12l40 40"/></svg>Geo-blocked</span>`;
+function renderEditor(){
+  $("#ecount").innerHTML=`<b>${CH.filter(c=>c.shown).length}</b> shown · ${CH.filter(c=>!c.shown).length} hidden`;
+  $("#elist").innerHTML=CH.map(c=>`<div class="erow ${c.shown?"shown":""}" data-f data-act="toggle" data-name="${c.name}">${logo(c)}<div class="nm">${c.name}${c.flag==="Geo-blocked"?GEO:c.flag?` <span class="tag warn" style="font-size:20px">${c.flag}</span>`:""}</div><div class="grp">${[c.group,c.q,"Source "+c.src].filter(Boolean).join(" · ")}</div><div class="state"><span>${c.shown?"Shown":"Hidden"}</span><div class="pill"></div></div></div>`).join("");
+}
+
+/* ---------- screens & focus ---------- */
+let focused=null;
+function setFocus(el){
+  if(!el) return; if(focused) focused.classList.remove("focus");
+  focused=el; el.classList.add("focus");
+  el.scrollIntoView({block:"nearest"});
+  if(S.screen==="guide" && el.dataset.name) showInfo(CH.find(c=>c.name===el.dataset.name));
+  if(S.screen==="settings" && el.dataset.panel && el.dataset.panel!==S.panel){S.panel=el.dataset.panel;renderSettings();}
+}
+function scope(){return $("#refresh").hidden?$("#s-"+S.screen):$("#refresh")}
+function go(name){
+  if(name==="refresh"){ openRefresh(); return; }
+  closeRefresh(true);
+  if(S.screen!=="full"&&S.screen!=="saver") S.prev=S.screen;
+  S.screen=name;
+  $$(".screen").forEach(s=>s.classList.toggle("on",s.id==="s-"+name));
+  $$(".tabs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.go===name));
+  if(name==="home") renderHome();
+  if(name==="guide") renderGuide();
+  if(name==="settings") renderSettings();
+  if(name==="editor") renderEditor();
+  if(name==="full" && !$("#fname").textContent) openFull("Rede Globo");
+  if(name==="saver") drift();
+  const first = name==="guide" ? ($(`#glist [data-name="${CSS.escape(S.playing||"")}"]`)||$("#glist [data-f]")) :
+                name==="settings" ? $(`.s-item[data-panel="${S.panel}"]`) : scope().querySelector("[data-f]");
+  focused=null; setFocus(first);
+  renderNote(name);
+}
+function openRefresh(){
+  if(S.screen!=="home") go("home");
+  $("#refresh").hidden=false; $("#rbar").hidden=true; $("#rbtns").hidden=false;
+  $("#r-title").textContent="Refresh channels?";
+  $("#r-body").textContent="This downloads both channel sources, combines them without duplicates and replaces the local copy. Channels you hid stay hidden if they are still in the new list.";
+  $$(".tabs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.go==="refresh"));
+  focused=null; setFocus($("#refresh [data-f]")); renderNote("refresh");
+}
+function closeRefresh(silent){ if($("#refresh").hidden) return; $("#refresh").hidden=true; if(!silent){focused=null;setFocus($('[data-act="refresh"]'));$$(".tabs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.go==="home"));renderNote("home");} }
+function doRefresh(){
+  $("#rbtns").hidden=true; $("#rbar").hidden=false; $("#r-title").textContent="Downloading channel list…";
+  let p=0; const bar=$("#rbar i");
+  const t=setInterval(()=>{p+=12;bar.style.width=Math.min(p,100)+"%";if(p>=100){clearInterval(t);
+    $("#r-title").textContent="Channel list updated";
+    $("#r-body").textContent=`409 channels: 402 from Source 1 and 7 new from Source 2 (104 duplicates and 21 YouTube-only channels skipped). ${CH.filter(c=>!c.shown).length} hidden channels kept hidden.`;
+    setTimeout(()=>closeRefresh(false),1600);}},120);
+}
+function back(){
+  if(!$("#refresh").hidden) return closeRefresh(false);
+  if(S.screen==="full") return go("guide");
+  if(S.screen==="saver") return go(S.prev||"home");
+  if(S.screen!=="home") go("home");
+}
+function activate(el){
+  if(!el) return; click(true);
+  const a=el.dataset.act;
+  if(a==="guide"||a==="settings"||a==="editor"||a==="refresh") go(a);
+  else if(a==="play") openFull(el.dataset.name);
+  else if(a==="tune") tune(el.dataset.name);
+  else if(a==="cat"){S.cat=(S.cat+1)%CATS.length;renderGuide();}
+  else if(a==="set"){S[el.dataset.k]=JSON.parse(el.dataset.v);tick();renderHome();renderSettings();setFocus($(`.opt[data-k="${el.dataset.k}"][data-v='${el.dataset.v}']`));}
+  else if(a==="toggle"){const c=CH.find(x=>x.name===el.dataset.name);c.shown=!c.shown;renderEditor();setFocus($(`#elist [data-name="${CSS.escape(c.name)}"]`));}
+  else if(a==="editsrc"){const i=+el.dataset.i;S.editing=i;renderSettings();const f=$(`.field[data-i="${i}"]`);setFocus(f);const inp=$("#srcin");inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length);}
+  else if(a==="resetsrc"){S.src=[...DEF_SRC];S.editing=null;renderSettings();setFocus($('[data-act="resetsrc"]'));}
+  else if(a==="doRefresh") doRefresh();
+  else if(a==="back") back();
+}
+/* spatial navigation: nearest focusable in the pressed direction */
+function move(dir){
+  const items=[...scope().querySelectorAll("[data-f]")].filter(e=>e.offsetParent!==null);
+  if(!focused){setFocus(items[0]);return}
+  const r=focused.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/2;
+  let best=null,score=1e9;
+  for(const e of items){ if(e===focused) continue;
+    const q=e.getBoundingClientRect(), x=q.left+q.width/2, y=q.top+q.height/2;
+    const dx=x-cx, dy=y-cy;
+    const main={left:-dx,right:dx,up:-dy,down:dy}[dir], side=(dir==="left"||dir==="right")?Math.abs(dy):Math.abs(dx);
+    if(main<=2) continue; const s=main+side*2.5; if(s<score){score=s;best=e;}
+  }
+  if(best){setFocus(best);click(false)}
+}
+/* remote click sound */
+let ac=null;
+function click(strong){ if(!S.clicks) return; try{ ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+  const o=ac.createOscillator(),g=ac.createGain(); o.frequency.value=strong?880:1400; g.gain.setValueAtTime(.05,ac.currentTime); g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+.05);
+  o.connect(g).connect(ac.destination); o.start(); o.stop(ac.currentTime+.06);}catch(e){} }
+/* screen saver drift */
+let driftT=null;
+function drift(){ clearInterval(driftT); const f=$("#float"); const place=()=>{f.style.left=(120+Math.random()*1200)+"px";f.style.top=(120+Math.random()*640)+"px";}; place(); driftT=setInterval(()=>{if(S.screen==="saver")place();},4000); }
+
+const vp=$("#vp");
+vp.addEventListener("keydown",e=>{
+  if(e.target.tagName==="INPUT"){
+    if(e.key==="Enter"||e.key==="Escape"){e.preventDefault();const i=S.editing;
+      if(e.key==="Enter") S.src[i]=e.target.value.trim();
+      S.editing=null;renderSettings();vp.focus({preventScroll:true});setFocus($(`.field[data-i="${i}"]`));}
+    return;
+  }
+  const k={ArrowLeft:"left",ArrowRight:"right",ArrowUp:"up",ArrowDown:"down"}[e.key];
+  if(S.screen==="saver"){e.preventDefault();back();return}
+  if(k){e.preventDefault();move(k)} else if(e.key==="Enter"||e.key===" "){e.preventDefault();activate(focused)}
+  else if(e.key==="Escape"||e.key==="Backspace"){e.preventDefault();back()}
+});
+$("#stage").addEventListener("click",e=>{if(e.target.tagName==="INPUT")return;vp.focus(); if(S.screen==="saver"){back();return} const el=e.target.closest("[data-f]"); if(el){setFocus(el);activate(el)} else if(S.screen==="full") back();});
+$$(".tabs button").forEach(b=>b.addEventListener("click",()=>{go(b.dataset.go);vp.focus({preventScroll:true})}));
+
+/* scale stage to the frame */
+const stage=$("#stage");
+new ResizeObserver(()=>{stage.style.transform=`scale(${vp.clientWidth/1920})`}).observe(vp);
+
+/* notes under the TV */
+const NOTES={
+ home:["Home","Clock top left, date top right, both large. The first three tiles are your most-watched channels over the last 4 weeks, ranked by minutes watched (a channel counts after 30 seconds of viewing). Selecting one opens it straight to full screen. Until you have history, those tiles show “Watch channels to fill this spot”. LIVE TV opens the full channel list. Settings, Channel Editor and Refresh Channels sit below the line."],
+ guide:["Live TV","Rows are now about two-thirds the old height, so about 8 channels show at once instead of 5. The small number at the end of each row is the source the channel came from (1 = iptv-org, 2 = famelack). Moving through the list only updates the info text. Nothing streams until you press OK.","Freeze protection: after OK the app waits about 0.9 s for the remote to settle; more presses in that window only change which channel loads. Only one player exists, and the old stream is fully stopped before the next starts. If a stream fails or stalls for 10 s, the box says so instead of freezing.","The M3U list has no program schedule, so rows show category and quality instead of show times. The “All channels” chip cycles categories."],
+ full:["Full screen","OK on the channel that is already playing opens it full screen. The banner shows for a few seconds after a channel change, then hides. Back returns to the guide with the same channel still playing."],
+ settings:["Settings","New: Channel sources. Two editable addresses; press OK on one to type a new address (the Fire TV on-screen keyboard opens; in this preview, type and press Enter, or Esc to cancel). Leave a source empty to stop using it. Restore default addresses puts both original links back.","Duplicates are removed by matching stream address or channel name (ignoring accents, capitals and quality tags). When a channel is in both, the Source 1 copy is kept because it has the logo and category.","famelack's list is not a playlist file: the app reads the data file behind famelack.com/tv/br. 21 of its new channels are YouTube links, which the Fire TV video player can't play, so they are skipped."],
+ editor:["Channel Editor","Every channel in the local copy, with a show/hide switch and the source it came from. Geo-blocked channels are included but start hidden, marked with a crossed-out globe.","In the local channels.m3u file each entry carries vanise-source=\"1\" or \"2\"."],
+ refresh:["Refresh Channels","Asks before replacing the local file. Hidden choices carry over for channels that still exist in the new list (matched by stream address and channel ID). Watch history is kept."],
+ saver:["Screen saver","After the chosen idle time the screen goes black with a dim clock that moves every few seconds to protect the TV panel. Any button wakes it. It never triggers during full-screen playback."]
+};
+function renderNote(n){const v=NOTES[n];$("#note").innerHTML=`<h2>${v[0]}</h2><ul>${v.slice(1).map(x=>`<li>${x}</li>`).join("")}</ul>`}
+
+tick(); go("home");
+})();
+</script>

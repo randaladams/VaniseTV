@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg">#0C1620</color>
+    <color name="panel">#14222E</color>
+    <color name="tile">#1B2D3B</color>
+    <color name="tile_focus">#22394A</color>
+    <color name="line">#2C4354</color>
+    <color name="fg">#EEF3F6</color>
+    <color name="muted">#8EA3B3</color>
+    <color name="focus">#F5B83D</color>
+    <color name="ok">#4FC28A</color>
+    <color name="live">#E06A5A</color>
+    <color name="row_focus">#E9EEF2</color>
+    <color name="row_focus_fg">#0C1620</color>
+</resources>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Compact row: about 8 channels fit below the preview at once. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="34dp"
+    android:layout_marginBottom="3dp"
+    android:background="@drawable/bg_row"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="4dp"
+    android:paddingEnd="10dp">
+
+    <FrameLayout
+        android:id="@+id/rowLogo"
+        android:layout_width="40dp"
+        android:layout_height="27dp">
+        <include layout="@layout/view_logo" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/rowName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_weight="1"
+        android:duplicateParentState="true"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/row_text"
+        android:textSize="15sp" />
+
+    <TextView
+        android:id="@+id/rowPlaying"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="@string/now_playing"
+        android:textColor="@color/ok"
+        android:textSize="12sp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/rowGroup"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:duplicateParentState="true"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/row_text_muted"
+        android:textSize="12sp" />
+
+    <TextView
+        android:id="@+id/rowQuality"
+        android:layout_width="56dp"
+        android:layout_height="wrap_content"
+        android:duplicateParentState="true"
+        android:gravity="end"
+        android:textColor="@color/row_text_muted"
+        android:textSize="12sp" />
+
+    <TextView
+        android:id="@+id/rowSource"
+        android:layout_width="20dp"
+        android:layout_height="18dp"
+        android:layout_marginStart="12dp"
+        android:background="@drawable/bg_source"
+        android:duplicateParentState="true"
+        android:gravity="center"
+        android:textColor="@color/row_text_muted"
+        android:textSize="11sp"
+        android:textStyle="bold" />
+</LinearLayout>

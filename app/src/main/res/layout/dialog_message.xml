@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="560dp"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_panel"
+    android:orientation="vertical"
+    android:padding="34dp">
+
+    <TextView
+        android:id="@+id/dlgTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="@color/fg"
+        android:textSize="28sp" />
+
+    <TextView
+        android:id="@+id/dlgBody"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:lineSpacingMultiplier="1.15"
+        android:textColor="#C6D3DC"
+        android:textSize="17sp" />
+
+    <EditText
+        android:id="@+id/dlgInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/bg_option"
+        android:imeOptions="actionDone"
+        android:inputType="textUri"
+        android:maxLines="1"
+        android:padding="12dp"
+        android:textColor="@color/fg"
+        android:textSize="17sp"
+        android:visibility="gone" />
+
+    <ProgressBar
+        android:id="@+id/dlgProgress"
+        style="@android:style/Widget.Material.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:indeterminate="true"
+        android:indeterminateTint="@color/focus"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/dlgButtons"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="26dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/dlgPrimary"
+            style="@style/DialogButton" />
+
+        <TextView
+            android:id="@+id/dlgSecondary"
+            style="@style/DialogButton"
+            android:layout_marginStart="14dp" />
+    </LinearLayout>
+</LinearLayout>
