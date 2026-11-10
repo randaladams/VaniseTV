@@ -1,6 +1,6 @@
 # VaniseTV: handoff
 
-Everything a new session needs to continue this project. State as of **09/11/2026**, last commit `58db086`, GitHub build 9 (green).
+Everything a new session needs to continue this project. State as of **10/11/2026**, last feature commit `7aa293a` (pins, scans, search delay, click fix).
 
 ## What it is
 
@@ -62,19 +62,21 @@ Tooling quirks seen in this session:
 | `data/Sources.kt` | Two editable sources, defaults `https://iptv-org.github.io/iptv/countries/br.m3u` and `https://famelack.com/tv/br`. Either slot takes M3U or famelack; the format is **detected from content**. famelack pages map to `raw.githubusercontent.com/famelack/famelack-data/main/tv/raw/countries/<cc>.json`; YouTube-only entries are skipped. `merge()` removes duplicates by URL or normalized name (accents and punctuation removed), keeping the earlier source. `normalize()` is reused for search and sorting |
 | `data/ChannelRepository.kt` | Local copy `files/channels.m3u`. First start downloads; refresh keeps hidden flags (by key, then URL). Geo-blocked channels start hidden. If any configured source fails, the refresh throws `SourceException(n)` and the old list is kept. `categories()`: All, Novelas (name or group contains "novela"), then groups by size, every list A–Z. PT group names live here |
 | `data/Prefs.kt` | style `br`/`us`, lang `en`/`pt`, clicks, saverMinutes (3/10/60/0), source1/2, lastSourceStats, audioLang, subsLang (`off`/lang/`und`), subSize (`sys`/s/m/l) |
+| `data/Pins.kt` | Home pins: newest first, max 5, a sixth drops the oldest (pure functions, `PinsTest`). Stored in `Prefs.pins` as channel keys |
+| `data/StreamChecker.kt` | Quick (3 s) / Full (5 s) scan: 8 parallel GETs (headers only, player-like UA, EXTVLCOPT UA/referrer); dead = no answer in time or non-2xx. Cancellable; `ChannelRepository.setHidden(list)` saves once |
 | `data/WatchStats.kt` | Seconds per channel per day, last 28 days; sessions under 30 s are ignored. Feeds the home top-3 tiles |
 | `data/Backgrounds.kt` | WorkManager weekly job: 3 random landscape photos from Commons `Category:Quality_images_of_Brazil` at 1920 px, keeps 10, stores the artist for the credit. `current()` / `next()` are shared by home and the screen saver |
 | `data/Net.kt` | OkHttp with UA `VaniseTV/1.0 (Fire TV; +https://github.com/randaladams/VaniseTV)`. Don't put the user's email in requests |
-| `ui/BaseActivity.kt` | Per-app locale (`attachBaseContext`), recreates when the language changes, click sounds (off while playing), screen saver overlay (photo darkened, moving clock, next photo every 10 min, releases keep-screen-on after 1 h) |
-| `ui/HomeActivity.kt` | Clock and date, top-3 tiles (go straight to full screen), LIVE TV tile, Settings / Channel Editor / Refresh, exit confirmation (Back, then Back again exits), background and credit |
-| `ui/GuideActivity.kt` | Live TV: info panel, preview player, compact list, category chip (Left/Right), **search** EditText, **letter jump** on Rewind/FF, full screen (Up/Down zaps, banner), **☰ Menu subtitles/audio panel** (keys handled manually in `dispatchKeyEvent`; `swallowBackUp` stops the closing Back from leaving full screen), subtitle style |
+| `ui/BaseActivity.kt` | Per-app locale (`attachBaseContext`), recreates when the language changes, click sounds (off while playing), **moves arrow-key focus itself (`moveFocusSilently` in Ui.kt) so Fire TV's system navigation click never plays**, screen saver overlay (photo darkened, moving clock, next photo every 10 min, releases keep-screen-on after 1 h) |
+| `ui/HomeActivity.kt` | Clock and date, **row of 5 pinned tiles**, row of top-3 tiles + LIVE TV (all go straight to full screen), Refresh dialog with Refresh now / Quick scan / Full scan (results list, Back stops a scan), Settings / Channel Editor / Refresh, exit confirmation (Back, then Back again exits), background and credit |
+| `ui/GuideActivity.kt` | Live TV: info panel, preview player, compact list, category chip (Left/Right), **search** EditText (runs 3 s after the last key, or at once on the Search key; uses `Channel.searchKey`), **letter jump** on Rewind/FF, full screen (Up/Down zaps, banner), **☰ Menu "Channel options" panel (Pin/Unpin, subtitles, audio)** (keys handled manually in `dispatchKeyEvent`; `swallowBackUp` stops the closing Back from leaving full screen), subtitle style |
 | `ui/TvPlayer.kt` | One ExoPlayer. Settles for 900 ms (zapping 700 ms) before tuning, stops the old stream first, 15 s stall watchdog with one retry, handles BEHIND_LIVE_WINDOW, applies EXTVLCOPT UA/referrer, records watch stats, track options/select/subtitlesOff, applies remembered preferences per channel |
 | `ui/SettingsActivity.kt` | Sections TIME, LANG, SOUND, SAVER, SUBS, SOURCES (editable URLs through `TvDialog.input`, restore defaults), ABOUT |
 | `ui/EditorActivity.kt` | All channels A–Z with show/hide; search; saves immediately |
-| `ui/TvDialog.kt` | Remote-friendly dialog: buttons, progress, optional text input |
+| `ui/TvDialog.kt` | Remote-friendly dialog: `choices()` (2 side by side, 3+ stacked), determinate `progress()`, optional text input; moves focus silently too |
 | `ui/Formats.kt`, `ui/Ui.kt` | US/BR time and date, day names; logo binding with an initials fallback, focus scaling |
 
-Tests (`app/src/test`): `M3uTest`, `SourcesTest` (with snapshots `br.m3u` and `famelack-br.json` from 09/11/2026: 402 + 132 entries, merged 408), `TranslationsTest`. **15 tests, all passing.**
+Tests (`app/src/test`): `M3uTest`, `SourcesTest` (with snapshots `br.m3u` and `famelack-br.json` from 09/11/2026: 402 + 132 entries, merged 408), `TranslationsTest`. Plus `PinsTest`. **19 tests, all passing.**
 
 ## Feature list (all built and in CI build 9)
 
@@ -82,6 +84,8 @@ Home (clock and date, top 3 by the last 4 weeks, LIVE TV, Settings / Editor / Re
 
 ## Not verified / open items
 
+- **Scan results depend on the network:** from the dev PC (US) about half of a 60-channel sample didn't answer at 3 s or 5 s; some streams only answer from Brazil.
+- **Click fix** assumes Fire TV's click is Android's focus-navigation sound; fallback is Fire TV Settings › Display & Sounds › Audio › Navigation Sounds.
 - **Nothing has been confirmed on a real Fire TV yet.** All checks were builds, unit tests and the browser preview. The user is about to sideload build 9.
 - **Subtitle and audio tracks** depend on each stream. Expect most channels to have one audio track and no subtitles. Suggested test channels: AXN or AMC Latin America (audio), news channels (CC). Undeclared CEA-608 captions won't appear.
 - **On-screen keyboard** (search, source URLs): uses `flagNoExtractUi|flagNoFullscreen`, but some Fire OS 6 keyboards still go full screen.
