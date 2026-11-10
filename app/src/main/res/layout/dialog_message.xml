@@ -45,22 +45,14 @@
         android:layout_marginTop="20dp"
         android:indeterminate="true"
         android:indeterminateTint="@color/focus"
+        android:progressTint="@color/focus"
         android:visibility="gone" />
 
+    <!-- Buttons are added by TvDialog: two side by side, three or more stacked -->
     <LinearLayout
         android:id="@+id/dlgButtons"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="26dp"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/dlgPrimary"
-            style="@style/DialogButton" />
-
-        <TextView
-            android:id="@+id/dlgSecondary"
-            style="@style/DialogButton"
-            android:layout_marginStart="14dp" />
-    </LinearLayout>
+        android:orientation="horizontal" />
 </LinearLayout>

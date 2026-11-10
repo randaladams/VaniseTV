@@ -29,6 +29,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.vanisetv.app.R
 import com.vanisetv.app.data.Category
 import com.vanisetv.app.data.Channel
+import com.vanisetv.app.data.Pins
 import com.vanisetv.app.data.Sources
 import kotlinx.coroutines.launch
 import java.util.Date
@@ -99,10 +100,21 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
         search.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) { if (ready) applySearch(s?.toString().orEmpty()) }
+            override fun afterTextChanged(s: Editable?) {
+                if (!ready) return
+                handler.removeCallbacks(runSearch)
+                if (s.isNullOrBlank()) applySearch("")          // clearing is immediate
+                else {
+                    // Wait until typing pauses so each key press stays fast.
+                    status.setText(R.string.search_wait)
+                    handler.postDelayed(runSearch, SEARCH_DELAY_MS)
+                }
+            }
         })
         search.setOnEditorActionListener { _, action, _ ->
             if (action == EditorInfo.IME_ACTION_SEARCH || action == EditorInfo.IME_ACTION_DONE) {
+                handler.removeCallbacks(runSearch)
+                applySearch(search.text.toString())                // Search key: go now
                 hideKeyboard()
                 if (channels.isNotEmpty()) focusRow(0)
                 true
@@ -114,7 +126,7 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
                 when {
                     fullscreen && !launchedFullscreen -> exitFullscreen()
                     fullscreen -> finish()
-                    query.isNotEmpty() -> { search.setText(""); search.requestFocus() }   // first Back clears the search
+                    search.text.isNotEmpty() -> { search.setText(""); search.requestFocus() }   // first Back clears the search
                     else -> finish()
                 }
             }
@@ -165,7 +177,7 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
 
     private fun setCategory(index: Int) {
         if (categories.isEmpty()) return
-        if (query.isNotEmpty()) search.setText("")   // picking a category ends the search
+        if (search.text.isNotEmpty()) search.setText("")   // picking a category ends the search
         catIndex = Math.floorMod(index, categories.size)
         updateChip()
         adapter.notifyDataSetChanged()
@@ -181,11 +193,13 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
     // ---------------- search ----------------
 
     /** Filters all visible channels by name, ignoring accents, capitals and punctuation. */
+    private val runSearch = Runnable { applySearch(search.text.toString()) }
+
     private fun applySearch(text: String) {
         query = text.trim()
         val needle = Sources.normalize(query)
         searchResults = if (needle.isEmpty()) null
-        else app.repo.visible.filter { Sources.normalize(it.name).contains(needle) }.sortedBy { Sources.normalize(it.name) }
+        else app.repo.visible.filter { it.searchKey.contains(needle) }.sortedBy { it.searchKey }
         updateChip()
         adapter.notifyDataSetChanged()
         list.scrollToPosition(0)
@@ -203,7 +217,7 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
     // ---------------- jump by letter (Rewind / Fast-forward) ----------------
 
     private fun letterOf(c: Channel): Char =
-        Sources.normalize(c.name).firstOrNull()?.let { if (it.isLetter()) it.uppercaseChar() else '#' } ?: '#'
+        c.searchKey.firstOrNull()?.let { if (it.isLetter()) it.uppercaseChar() else '#' } ?: '#'
 
     private fun groupStart(list: List<Channel>, pos: Int): Int {
         val l = letterOf(list[pos])
@@ -343,7 +357,11 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
     private var swallowBackUp = false
     private val menuOpen: Boolean get() = menuPanel.visibility == View.VISIBLE
 
+    /** Shown under the Pin row after pinning / unpinning. */
+    private var pinMessage = ""
+
     private fun openMenu() {
+        pinMessage = ""
         menuPanel.visibility = View.VISIBLE
         handler.removeCallbacks(hideBanner)
         renderMenuTop(null)
@@ -406,6 +424,17 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
         }
         menuRowsBox.removeAllViews()
         val rows = ArrayList<View>()
+        // Pin / Unpin the playing channel on the home screen.
+        val key = player.current?.key
+        val pins = app.prefs.pins
+        val pinned = key != null && key in pins
+        val pinRow = addMenuRow(getString(if (pinned) R.string.menu_unpin else R.string.menu_pin),
+            getString(R.string.pin_count, pins.size, Pins.MAX), null, enabled = key != null, showArrow = false) { togglePin() }
+        if (key != null) rows += pinRow
+        if (pinMessage.isNotEmpty()) menuRowsBox.addView(TextView(this).apply {
+            text = pinMessage; textSize = 13f; setTextColor(getColor(R.color.ok))
+            setPadding(dp(4), 0, 0, dp(12))
+        })
         val subsRow = addMenuRow(getString(R.string.menu_subs), subsValue, null, enabled = subs.isNotEmpty()) { renderMenuList(C.TRACK_TYPE_TEXT) }
         val audioRow = addMenuRow(getString(R.string.menu_audio), audioValue, null, enabled = audio.size > 1) { renderMenuList(C.TRACK_TYPE_AUDIO) }
         if (subs.isNotEmpty()) rows += subsRow
@@ -414,9 +443,25 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
         menuIndex = when (focusType) {
             C.TRACK_TYPE_AUDIO -> rows.indexOf(audioRow)
             C.TRACK_TYPE_TEXT -> rows.indexOf(subsRow)
-            else -> 0
+            else -> 0                                  // the Pin row
         }.coerceAtLeast(0)
         if (rows.isEmpty()) menuPanel.requestFocus() else rows[menuIndex].requestFocus()
+    }
+
+    /** Newest pin goes first; a sixth pin drops the oldest, and the menu says which one. */
+    private fun togglePin() {
+        val ch = player.current ?: return
+        val pins = app.prefs.pins
+        if (ch.key in pins) {
+            app.prefs.pins = Pins.remove(pins, ch.key)
+            pinMessage = getString(R.string.unpinned_msg)
+        } else {
+            val (list, dropped) = Pins.add(pins, ch.key)
+            app.prefs.pins = list
+            val droppedName = dropped?.let { k -> app.repo.find(k)?.name ?: k.substringAfter('|') }
+            pinMessage = if (droppedName != null) getString(R.string.pin_dropped, droppedName) else getString(R.string.pinned_msg)
+        }
+        renderMenuTop(null)
     }
 
     private fun renderMenuList(type: Int) {
@@ -452,7 +497,7 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
         handler.postDelayed({ if (menuOpen && menuLevel == 0) renderMenuTop(type) }, 300)
     }
 
-    private fun addMenuRow(label: String, value: String?, checked: Boolean?, enabled: Boolean, onClick: () -> Unit): View {
+    private fun addMenuRow(label: String, value: String?, checked: Boolean?, enabled: Boolean, showArrow: Boolean = true, onClick: () -> Unit): View {
         val row = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -473,7 +518,7 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
             setTextColor(getColorStateList(R.color.row_text))
         }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
         if (value != null) row.addView(TextView(this).apply {
-            text = if (enabled) "$value  ›" else value
+            text = if (enabled && showArrow) "$value  ›" else value
             textSize = 14f; isDuplicateParentStateEnabled = true
             setTextColor(getColorStateList(R.color.row_text_muted))
         })
@@ -598,6 +643,7 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
     }
 
     companion object {
+        const val SEARCH_DELAY_MS = 3_000L
         const val EXTRA_CHANNEL = "channel"
         const val EXTRA_FULLSCREEN = "fullscreen"
         private const val PAYLOAD_MARK = "mark"

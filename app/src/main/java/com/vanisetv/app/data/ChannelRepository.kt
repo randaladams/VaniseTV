@@ -60,8 +60,12 @@ class ChannelRepository(private val context: Context, private val prefs: Prefs) 
         RefreshResult(merged, fresh.count { it.hidden })
     }
 
-    fun setHidden(channel: Channel, hidden: Boolean) {
-        channel.hidden = hidden
+    fun setHidden(channel: Channel, hidden: Boolean) = setHidden(listOf(channel), hidden)
+
+    /** Hides or shows several channels with a single save (used by Quick / Full scan). */
+    fun setHidden(list: Collection<Channel>, hidden: Boolean) {
+        if (list.isEmpty()) return
+        list.forEach { it.hidden = hidden }
         val snapshot = channels
         ioScope.launch { save(snapshot) }
     }
@@ -71,7 +75,7 @@ class ChannelRepository(private val context: Context, private val prefs: Prefs) 
     /** "All", "Novelas" (when present), then every group by size. Only visible channels. */
     fun categories(): List<Category> {
         // A–Z (ignoring accents and punctuation) so Rewind / Fast-forward can jump by letter.
-        val vis = visible.sortedBy { Sources.normalize(it.name) }
+        val vis = visible.sortedBy { it.searchKey }
         val out = ArrayList<Category>()
         out += Category("all", context.getString(R.string.all_channels), vis)
         val novelas = vis.filter { it.isNovela }

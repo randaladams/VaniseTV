@@ -48,7 +48,7 @@
                     android:fontFamily="sans-serif-light"
                     android:includeFontPadding="false"
                     android:textColor="@color/fg"
-                    android:textSize="72sp" />
+                    android:textSize="62sp" />
 
                 <TextView
                     android:id="@+id/ampm"
@@ -72,7 +72,7 @@
                     android:fontFamily="sans-serif-light"
                     android:includeFontPadding="false"
                     android:textColor="@color/fg"
-                    android:textSize="38sp" />
+                    android:textSize="34sp" />
 
                 <TextView
                     android:id="@+id/day"
@@ -84,63 +84,101 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Four large tiles -->
+        <!-- Pinned channels: 5 in a row, newest first (pin with ☰ while a channel plays) -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/pinned_label"
+            android:textColor="@color/muted"
+            android:textSize="13sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="74dp"
+            android:layout_marginTop="6dp"
+            android:clipChildren="false"
+            android:orientation="horizontal">
+
+                <include
+                    android:id="@+id/pin1"
+                    layout="@layout/item_pin_tile"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1" />
+                <include
+                    android:id="@+id/pin2"
+                    layout="@layout/item_pin_tile"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="6dp"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1" />
+                <include
+                    android:id="@+id/pin3"
+                    layout="@layout/item_pin_tile"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="6dp"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1" />
+                <include
+                    android:id="@+id/pin4"
+                    layout="@layout/item_pin_tile"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="6dp"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1" />
+                <include
+                    android:id="@+id/pin5"
+                    layout="@layout/item_pin_tile"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1" />
+        </LinearLayout>
+
+        <!-- Three most-watched channels and LIVE TV -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_marginTop="18dp"
+            android:layout_marginTop="14dp"
             android:layout_weight="1"
             android:clipChildren="false"
-            android:orientation="vertical">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:clipChildren="false"
-                android:orientation="horizontal">
+            android:orientation="horizontal">
 
                 <include
                     android:id="@+id/tile1"
                     layout="@layout/item_home_tile"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_marginEnd="8dp"
+                    android:layout_marginEnd="6dp"
                     android:layout_weight="1" />
-
                 <include
                     android:id="@+id/tile2"
                     layout="@layout/item_home_tile"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginStart="6dp"
+                    android:layout_marginEnd="6dp"
                     android:layout_weight="1" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="16dp"
-                android:layout_weight="1"
-                android:clipChildren="false"
-                android:orientation="horizontal">
-
                 <include
                     android:id="@+id/tile3"
                     layout="@layout/item_home_tile"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_marginEnd="8dp"
+                    android:layout_marginStart="6dp"
+                    android:layout_marginEnd="6dp"
                     android:layout_weight="1" />
-
                 <include
                     android:id="@+id/tileLive"
                     layout="@layout/item_home_tile"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginStart="6dp"
                     android:layout_weight="1" />
-            </LinearLayout>
         </LinearLayout>
 
         <View

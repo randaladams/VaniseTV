@@ -5,8 +5,8 @@
     android:background="@drawable/bg_tile"
     android:clickable="true"
     android:focusable="true"
-    android:paddingStart="20dp"
-    android:paddingEnd="20dp">
+    android:paddingStart="14dp"
+    android:paddingEnd="14dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -16,15 +16,15 @@
 
         <FrameLayout
             android:id="@+id/tileLogo"
-            android:layout_width="78dp"
-            android:layout_height="78dp">
+            android:layout_width="58dp"
+            android:layout_height="58dp">
             <include layout="@layout/view_logo" />
         </FrameLayout>
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="18dp"
+            android:layout_marginStart="12dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
@@ -36,16 +36,16 @@
                 android:fontFamily="sans-serif-medium"
                 android:maxLines="2"
                 android:textColor="@color/fg"
-                android:textSize="25sp" />
+                android:textSize="19sp" />
 
             <TextView
                 android:id="@+id/tileSub"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:maxLines="2"
+                android:maxLines="3"
                 android:textColor="@color/muted"
-                android:textSize="14sp" />
+                android:textSize="12sp" />
         </LinearLayout>
     </LinearLayout>
 
@@ -56,5 +56,5 @@
         android:layout_gravity="top|end"
         android:layout_marginTop="10dp"
         android:textColor="@color/muted"
-        android:textSize="14sp" />
+        android:textSize="12sp" />
 </FrameLayout>

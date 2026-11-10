@@ -44,15 +44,23 @@ kbd{font:500 12px var(--f-ui);border:1px solid var(--page-line);border-bottom-wi
 .clock small{font-size:48px;font-weight:400;margin-left:12px;letter-spacing:0}
 .date{font-size:64px;font-weight:300;text-align:right;line-height:1.05;font-variant-numeric:tabular-nums}
 .date span{display:block;font-size:34px;color:var(--tv-muted);font-weight:400}
-.grid4{position:absolute;left:96px;right:96px;top:250px;display:grid;grid-template-columns:1fr 1fr;gap:28px}
-.tile{background:var(--tv-tile);border-radius:22px;height:250px;padding:34px 40px;display:flex;align-items:center;gap:34px;cursor:pointer;position:relative}
+.pinlbl{position:absolute;left:100px;top:232px;font-size:26px;color:var(--tv-muted);letter-spacing:.04em}
+.pins{position:absolute;left:96px;right:96px;top:276px;display:grid;grid-template-columns:repeat(5,1fr);gap:24px}
+.pin{background:var(--tv-tile);border-radius:18px;height:170px;padding:20px 22px;display:flex;align-items:center;gap:18px;cursor:pointer;position:relative}
+.pin .logo{width:88px;height:88px;border-radius:16px;font-size:30px}
+.pin h4{margin:0;font-size:30px;font-weight:500;line-height:1.15;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.pin.empty{background:transparent;border:2px dashed var(--tv-line);color:var(--tv-muted);font-size:22px;justify-content:center;text-align:center;font-family:var(--f-body)}
+.pin.focus{transform:scale(1.04);background:#22394a}
+.grid4{position:absolute;left:96px;right:96px;top:486px;display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.tile{background:var(--tv-tile);border-radius:22px;height:300px;padding:28px 28px;display:flex;align-items:center;gap:22px;cursor:pointer;position:relative}
+.tile .logo{width:110px;height:110px;font-size:36px;border-radius:20px}
 .tile.focus{transform:scale(1.03);background:#22394a}
 .logo{flex:none;width:150px;height:150px;border-radius:24px;display:grid;place-items:center;font-weight:600;font-size:48px;color:#fff}
-.tile h3{margin:0;font-size:52px;font-weight:500;line-height:1.1}
-.tile p{margin:10px 0 0;font-size:28px;color:var(--tv-muted)}
+.tile h3{margin:0;font-size:38px;font-weight:500;line-height:1.1}
+.tile p{margin:10px 0 0;font-size:22px;color:var(--tv-muted)}
 .rank{position:absolute;top:22px;right:30px;font-size:26px;color:var(--tv-muted)}
 .tile.live{background:linear-gradient(120deg,#1d3b52,#173042)}
-.tile.live .logo{background:var(--tv-off);font-size:40px;letter-spacing:1px}
+.tile.live .logo{background:var(--tv-off);font-size:30px;letter-spacing:1px}
 .divider{position:absolute;left:96px;right:96px;top:832px;height:2px;background:var(--tv-line)}
 .grid3{position:absolute;left:96px;right:96px;top:868px;display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
 .small{background:var(--tv-panel);border-radius:18px;height:140px;display:flex;align-items:center;gap:26px;padding:0 36px;font-size:40px;cursor:pointer}
@@ -165,6 +173,8 @@ kbd{font:500 12px var(--f-ui);border:1px solid var(--page-line);border-bottom-wi
 .btns{display:flex;gap:24px;margin-top:40px}
 .btn{font-size:34px;padding:20px 48px;border-radius:14px;background:var(--tv-tile);cursor:pointer}
 .btn.focus{background:#e9eef2;color:#0c1620}
+.scanlist{columns:2;font-size:28px;margin:6px 0 0;font-family:var(--f-body)}
+.scanlist div{padding:3px 0}
 .bar{height:14px;border-radius:7px;background:#25394a;overflow:hidden;margin:28px 0 10px}
 .bar i{display:block;height:100%;width:0;background:var(--tv-focus);transition:width .2s}
 
@@ -218,6 +228,8 @@ kbd{font:500 12px var(--f-ui);border:1px solid var(--page-line);border-bottom-wi
             <div class="clock" data-clock></div>
             <div class="date" data-date></div>
           </div>
+          <div class="pinlbl" data-t="pinned"></div>
+          <div class="pins" id="pins"></div>
           <div class="grid4" id="top3"></div>
           <div class="divider"></div>
           <div class="grid3">
@@ -295,9 +307,12 @@ kbd{font:500 12px var(--f-ui);border:1px solid var(--page-line);border-bottom-wi
             <h2 id="r-title"></h2>
             <p id="r-body"></p>
             <p class="src" id="r-src"></p>
+            <div class="scanlist" id="r-list" hidden></div>
             <div class="bar" id="rbar" hidden><i></i></div>
             <div class="btns" id="rbtns">
               <div class="btn" data-f data-act="dlgOk" id="r-ok"></div>
+              <div class="btn" data-f data-act="scan" data-s="3" id="r-quick"></div>
+              <div class="btn" data-f data-act="scan" data-s="5" id="r-full"></div>
               <div class="btn" data-f data-act="back" id="r-cancel"></div>
             </div>
           </div>
@@ -337,7 +352,7 @@ const CH=[
 const watch={"Rede Globo":["#1",41],"GloboNews":["#2",23],"Record":["#3",9]};
 const CATS=["all","Novelas","News","General","Entertainment","Sports","Kids","Series","Other"];
 const DEF_SRC=["https://iptv-org.github.io/iptv/countries/br.m3u","https://famelack.com/tv/br"];
-const S={subs:"off",prefAudio:"por",subSize:"sys",equery:"",esearching:false,query:"",searching:false,src:[...DEF_SRC],editing:null,style:"br",lang:"en",clicks:true,saver:10,screen:"home",prev:"home",playing:null,cat:0,panel:"time"};
+const S={pins:["CNN Brasil","Band","Canal do Boi"],qt:null,eqt:null,subs:"off",prefAudio:"por",subSize:"sys",equery:"",esearching:false,query:"",searching:false,src:[...DEF_SRC],editing:null,style:"br",lang:"en",clicks:true,saver:10,screen:"home",prev:"home",playing:null,cat:0,panel:"time"};
 
 /* ---------- every on-screen text, in both languages (mirrors the app string files) ---------- */
 const TX={
@@ -361,14 +376,14 @@ const TX={
    allCh:"All channels",chCount:n=>`${n} channels`,
    groups:{Novelas:"Novelas",News:"News",General:"General",Entertainment:"Entertainment",Sports:"Sports",Kids:"Kids",Series:"Series",Other:"Other",Education:"Education",Religious:"Religious",Outdoor:"Outdoor"},
    sSubs:"Subtitles",mSubs:"Subtitles",mAudio:"Audio",subsOff:"Off",notAvail:"Not available",oneTrack:"Only one track",
-   mTitle:"Subtitles and audio",mFoot:"OK selects · Back goes back · closes by itself after 10 seconds",
+   mTitle:"Channel options",mFoot:"OK selects · Back goes back · closes by itself after 10 seconds",
    langs:{por:"Portuguese",eng:"English",spa:"Spanish"},
    sizeOpt:{sys:"Follow Fire TV settings",s:"Small",m:"Medium",l:"Large"},
    hintSubs:"Size of subtitles while watching. “Follow Fire TV settings” uses the Fire TV’s own caption style (Settings › Accessibility › Captions). Turn subtitles on with the ☰ Menu button while a channel plays.",
    search:"Search",searchRes:(q,n)=>`Search: “${q}” (${n})`,searchNone:q=>`No channels match “${q}”. Press Back to clear the search.`,
    pressOk:"Press OK to watch here. Press OK again for full screen. ⏪ ⏩ jump by letter.",nothing:"Nothing playing yet",
-   tuning:n=>`Tuning to ${n}…`,playing:"Playing with sound. OK again for full screen · ☰ subtitles & audio.",
-   nowPlaying:"● Playing",liveSound:n=>`LIVE · ${n} · sound on`,fsHint:"Up / Down changes channel · ☰ subtitles & audio · Back returns",
+   tuning:n=>`Tuning to ${n}…`,playing:"Playing with sound. OK again for full screen · ☰ pin, subtitles & audio.",
+   nowPlaying:"● Playing",liveSound:n=>`LIVE · ${n} · sound on`,fsHint:"Up / Down changes channel · ☰ options · Back returns",
    geo:"Geo-blocked",not247:"Not 24/7",
    eCount:(s,h)=>`<b>${s}</b> shown · ${h} hidden`,shown:"Shown",hidden:"Hidden",
    eHint:"OK shows or hides a channel. Hidden channels disappear from Live TV and the home tiles. Changes are saved right away.",
@@ -377,6 +392,15 @@ const TX={
    rNow:"Refresh now",cancel:"Cancel",rLoading:"Downloading channel list…",rDoneTitle:"Channel list updated",
    rDone:h=>`408 channels: 402 from Source 1 and 6 new from Source 2. 102 duplicates and 24 YouTube-only channels were skipped. ${h} channels are hidden.`,
    exitTitle:"Exit VaniseTV?",exitBody:"Press Back again to exit.",exit:"Exit",
+   pinned:"📌 Pinned",pinEmpty:"Pin a channel with ☰ while it plays",
+   mPin:"📌 Pin to home screen",mUnpin:"📌 Unpin from home screen",pinCount:n=>`${n} of 5 used`,
+   pinnedMsg:"Pinned to the home screen.",pinDropped:n=>`Pinned. ${n} was removed (oldest pin).`,unpinnedMsg:"Removed from the home screen.",
+   searchWait:"Searching 3 seconds after your last key… (or press Search to go now)",
+   rQuick:"Quick scan",rFull:"Full scan",ok:"OK",
+   rScanInfo:"Quick scan and Full scan check every shown channel and hide the ones that don’t respond: Quick waits up to 3 seconds per channel, Full up to 5.",
+   scanTitle:s=>`Checking channels (${s} s each)…`,scanProg:(i,n,d)=>`Checking ${i} of ${n} · ${d} not responding`,
+   scanDoneTitle:"Scan finished",scanDone:(d,n,s)=>`${d} of ${n} channels didn’t respond within ${s} seconds and are now hidden:`,
+   scanNone:(n,s)=>`All ${n} channels responded within ${s} seconds. Nothing was hidden.`,scanFoot:"You can show them again in the Channel Editor.",
    days:["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]},
  pt:{settings:"Configurações",editor:"Editor de canais",refresh:"Atualizar canais",live:"TV AO VIVO",liveBadge:"AO VIVO",
    liveSub:n=>`${n} canais · todas as categorias`,watched:h=>`${h} h assistidas nas últimas 4 semanas`,
@@ -398,14 +422,14 @@ const TX={
    allCh:"Todos os canais",chCount:n=>`${n} canais`,
    groups:{Novelas:"Novelas",News:"Notícias",General:"Geral",Entertainment:"Entretenimento",Sports:"Esportes",Kids:"Infantil",Series:"Séries",Other:"Outros",Education:"Educação",Religious:"Religioso",Outdoor:"Ar livre"},
    sSubs:"Legendas",mSubs:"Legendas",mAudio:"Áudio",subsOff:"Desligadas",notAvail:"Não disponível",oneTrack:"Só uma faixa",
-   mTitle:"Legendas e áudio",mFoot:"OK seleciona · Voltar volta · fecha sozinho após 10 segundos",
+   mTitle:"Opções do canal",mFoot:"OK seleciona · Voltar volta · fecha sozinho após 10 segundos",
    langs:{por:"Português",eng:"Inglês",spa:"Espanhol"},
    sizeOpt:{sys:"Seguir configurações do Fire TV",s:"Pequena",m:"Média",l:"Grande"},
    hintSubs:"Tamanho das legendas ao assistir. “Seguir configurações do Fire TV” usa o estilo de legendas do próprio Fire TV (Configurações › Acessibilidade › Legendas). Ligue as legendas com o botão ☰ Menu enquanto um canal está passando.",
    search:"Buscar",searchRes:(q,n)=>`Busca: “${q}” (${n})`,searchNone:q=>`Nenhum canal com “${q}”. Pressione Voltar para limpar a busca.`,
    pressOk:"Pressione OK para assistir aqui. OK de novo para tela cheia. ⏪ ⏩ pula por letra.",nothing:"Nada tocando ainda",
-   tuning:n=>`Sintonizando ${n}…`,playing:"Tocando com som. OK de novo para tela cheia · ☰ legendas e áudio.",
-   nowPlaying:"● Tocando",liveSound:n=>`AO VIVO · ${n} · com som`,fsHint:"Cima / Baixo troca de canal · ☰ legendas e áudio · Voltar retorna",
+   tuning:n=>`Sintonizando ${n}…`,playing:"Tocando com som. OK de novo para tela cheia · ☰ fixar, legendas e áudio.",
+   nowPlaying:"● Tocando",liveSound:n=>`AO VIVO · ${n} · com som`,fsHint:"Cima / Baixo troca de canal · ☰ opções · Voltar retorna",
    geo:"Bloqueio regional",not247:"Não é 24h",
    eCount:(s,h)=>`<b>${s}</b> visíveis · ${h} ocultos`,shown:"Visível",hidden:"Oculto",
    eHint:"OK mostra ou oculta um canal. Canais ocultos somem da TV ao Vivo e da tela inicial. As mudanças são salvas na hora.",
@@ -414,6 +438,15 @@ const TX={
    rNow:"Atualizar agora",cancel:"Cancelar",rLoading:"Baixando a lista de canais…",rDoneTitle:"Lista de canais atualizada",
    rDone:h=>`408 canais: 402 da Fonte 1 e 6 novos da Fonte 2. 102 duplicados e 24 só do YouTube foram ignorados. ${h} canais estão ocultos.`,
    exitTitle:"Sair do VaniseTV?",exitBody:"Pressione Voltar de novo para sair.",exit:"Sair",
+   pinned:"📌 Fixados",pinEmpty:"Fixe um canal com ☰ enquanto ele passa",
+   mPin:"📌 Fixar na tela inicial",mUnpin:"📌 Tirar da tela inicial",pinCount:n=>`${n} de 5 usados`,
+   pinnedMsg:"Fixado na tela inicial.",pinDropped:n=>`Fixado. ${n} saiu (o fixado mais antigo).`,unpinnedMsg:"Removido da tela inicial.",
+   searchWait:"Buscando 3 segundos após a última tecla… (ou pressione Buscar para ir agora)",
+   rQuick:"Verificação rápida",rFull:"Verificação completa",ok:"OK",
+   rScanInfo:"A verificação rápida e a completa testam cada canal visível e ocultam os que não respondem: a rápida espera até 3 segundos por canal, a completa até 5.",
+   scanTitle:s=>`Verificando canais (${s} s cada)…`,scanProg:(i,n,d)=>`Verificando ${i} de ${n} · ${d} sem resposta`,
+   scanDoneTitle:"Verificação concluída",scanDone:(d,n,s)=>`${d} de ${n} canais não responderam em ${s} segundos e agora estão ocultos:`,
+   scanNone:(n,s)=>`Todos os ${n} canais responderam em ${s} segundos. Nada foi ocultado.`,scanFoot:"Você pode mostrá-los de novo no Editor de canais.",
    days:["domingo","segunda-feira","terça-feira","quarta-feira","quinta-feira","sexta-feira","sábado"]}};
 const T=k=>TX[S.lang][k];
 const G=g=>T("groups")[g]||g;
@@ -441,9 +474,11 @@ setInterval(tick,1000);
 
 /* ---------- home tiles ---------- */
 function renderHome(){
+  $("#pins").innerHTML=[0,1,2,3,4].map(i=>{const c=CH.find(x=>x.name===S.pins[i]);
+    return c?`<div class="pin" data-f data-act="play" data-name="${c.name}">${logo(c)}<h4>${c.name}</h4></div>`:`<div class="pin empty" data-f data-act="guide">${T("pinEmpty")}</div>`}).join("");
   const top=CH.filter(c=>c.shown&&watch[c.name]).slice(0,3);
   $("#top3").innerHTML=top.map(c=>`<div class="tile" data-f data-act="play" data-name="${c.name}">${logo(c)}<div><h3>${c.name}</h3><p>${T("watched")(watch[c.name][1])}</p></div><div class="rank">${watch[c.name][0]}</div></div>`).join("")+
-   `<div class="tile live" data-f data-act="guide"><div class="logo" style="font-size:${S.lang==="pt"?30:40}px">${T("liveBadge")}</div><div><h3>${T("live")}</h3><p>${T("liveSub")(CH.filter(c=>c.shown).length)}</p></div></div>`;
+   `<div class="tile live" data-f data-act="guide"><div class="logo" style="font-size:${S.lang==="pt"?22:30}px;white-space:nowrap">${T("liveBadge")}</div><div><h3>${T("live")}</h3><p>${T("liveSub")(CH.filter(c=>c.shown).length)}</p></div></div>`;
 }
 
 /* ---------- guide ---------- */
@@ -587,8 +622,12 @@ function showDialog(mode){
   $("#r-body").textContent=isRefresh?T("rBody"):T("exitBody");
   $("#r-src").hidden=!isRefresh;
   $("#r-src").innerHTML=`${T("source")(1)}: iptv-org.github.io/iptv/countries/br.m3u<br>${T("source")(2)}: famelack.com/tv/br`;
+  $("#r-body").textContent=isRefresh?T("rBody")+" "+T("rScanInfo"):T("exitBody");
+  $("#r-list").hidden=true;
   $("#r-ok").textContent=isRefresh?T("rNow"):T("exit");
   $("#r-cancel").textContent=T("cancel");
+  $("#r-quick").textContent=T("rQuick"); $("#r-full").textContent=T("rFull");
+  $("#r-quick").hidden=$("#r-full").hidden=!isRefresh; $("#r-cancel").hidden=false;
   $$(".tabs button").forEach(b=>b.setAttribute("aria-pressed",isRefresh&&b.dataset.go==="refresh"));
   focused=null; setFocus(isRefresh?$("#r-ok"):$("#r-cancel")); renderNote(isRefresh?"refresh":"exit");
 }
@@ -596,12 +635,31 @@ function openRefresh(){showDialog("refresh")}
 function closeRefresh(silent){ if($("#refresh").hidden) return; $("#refresh").hidden=true; dlgMode=null; if(!silent){focused=null;setFocus($('[data-act="refresh"]')||$("#top3 [data-f]"));$$(".tabs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.go==="home"));renderNote("home");} }
 function dialogOk(){
   if(dlgMode==="exit"){ closeRefresh(true); exitApp(); return; }
+  if(dlgMode==="done"){ closeRefresh(false); return; }
   $("#rbtns").hidden=true; $("#rbar").hidden=false; $("#r-title").textContent=T("rLoading"); $("#r-body").textContent=""; $("#r-src").hidden=true;
   let p=0; const bar=$("#rbar i");
   const t=setInterval(()=>{p+=12;bar.style.width=Math.min(p,100)+"%";if(p>=100){clearInterval(t);
     $("#r-title").textContent=T("rDoneTitle");
     $("#r-body").textContent=T("rDone")(CH.filter(c=>!c.shown).length);
     setTimeout(()=>closeRefresh(false),2200);}},120);
+}
+/* Quick scan (3 s) / Full scan (5 s): checks each shown channel, hides the ones that don't respond. Example results. */
+function runScan(sec){
+  const list=CH.filter(c=>c.shown);
+  const dead=sec===3?["AgroBrasil TV","Canal do Boi","IMPD TV Worldwide"]:["AgroBrasil TV","IMPD TV Worldwide"];
+  dlgMode="scan"; $("#rbtns").hidden=true; $("#r-src").hidden=true; $("#r-list").hidden=true; $("#rbar").hidden=false;
+  $("#r-title").textContent=T("scanTitle")(sec);
+  let i=0,d=0; const bar=$("#rbar i"); bar.style.width="0";
+  const t=setInterval(()=>{ i++; if(dead.includes(list[i-1].name)) d++;
+    bar.style.width=(i/list.length*100)+"%"; $("#r-body").textContent=T("scanProg")(i,list.length,d);
+    if(i>=list.length){ clearInterval(t);
+      const gone=list.filter(c=>dead.includes(c.name)); gone.forEach(c=>c.shown=false);
+      $("#rbar").hidden=true; $("#r-title").textContent=T("scanDoneTitle");
+      $("#r-body").textContent=gone.length?T("scanDone")(gone.length,list.length,sec):T("scanNone")(list.length,sec);
+      const L=$("#r-list"); L.hidden=!gone.length; L.innerHTML=gone.map(c=>`<div>• ${c.name}</div>`).join("")+(gone.length?`<p class="src" style="column-span:all">${T("scanFoot")}</p>`:"");
+      dlgMode="done"; $("#rbtns").hidden=false; $("#r-ok").textContent=T("ok");
+      $("#r-quick").hidden=$("#r-full").hidden=$("#r-cancel").hidden=true; setFocus($("#r-ok")); renderHome(); }
+  },90);
 }
 function exitApp(){
   const st=$("#stage"); st.style.transition="opacity .4s"; st.style.opacity="0";
@@ -631,6 +689,8 @@ function activate(el){
   else if(a==="editsrc"){const i=+el.dataset.i;S.editing=i;renderSettings();const f=$(`.field[data-i="${i}"]`);setFocus(f);const inp=$("#srcin");inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length);}
   else if(a==="resetsrc"){S.src=[...DEF_SRC];S.editing=null;renderSettings();setFocus($('[data-act="resetsrc"]'));}
   else if(a==="dlgOk") dialogOk();
+  else if(a==="scan") runScan(+el.dataset.s);
+  else if(a==="tm-pin") {const n=S.playing,i=S.pins.indexOf(n); if(i>=0){S.pins.splice(i,1);TM.msg=T("unpinnedMsg");} else {S.pins.unshift(n); const drop=S.pins.length>5?S.pins.pop():null; TM.msg=drop?T("pinDropped")(drop):T("pinnedMsg");} renderTm("pin");}
   else if(a==="tm-open") {TM.level=el.dataset.k;renderTm();}
   else if(a==="tm-pick") {if(TM.level==="subs")S.subs=el.dataset.v;else S.prefAudio=el.dataset.v;const lv=TM.level;TM.level="top";renderTm(lv);updateCaptions();}
   else if(a==="back") back();
@@ -659,9 +719,9 @@ function click(strong){ if(!S.clicks) return; try{ ac=ac||new (window.AudioConte
 let driftT=null;
 function drift(){ clearInterval(driftT); const f=$("#float"); const place=()=>{f.style.left=(120+Math.random()*1200)+"px";f.style.top=(120+Math.random()*640)+"px";}; place(); driftT=setInterval(()=>{if(S.screen==="saver")place();},4000); }
 
-function openSearch(){S.searching=true;const sb=$("#srch");sb.innerHTML=`🔍 <input id="srchin" value="${S.query.replace(/"/g,"&quot;")}">`;const i=$("#srchin");i.focus();i.addEventListener("input",()=>{S.query=i.value.trim();renderGuide();});}
-function openEdSearch(){S.esearching=true;const sb=$("#esrch");sb.innerHTML=`🔍 <input id="esrchin" value="${S.equery.replace(/"/g,"&quot;")}">`;const i=$("#esrchin");i.focus();i.addEventListener("input",()=>{S.equery=i.value.trim();renderEditor();});}
-function closeSearch(goList){S.searching=false;vp.focus({preventScroll:true});renderGuide();if(goList&&$("#glist [data-f]"))setFocus($("#glist [data-f]"));else setFocus($("#srch"));}
+function openSearch(){S.searching=true;const sb=$("#srch");sb.innerHTML=`🔍 <input id="srchin" value="${S.query.replace(/"/g,"&quot;")}">`;const i=$("#srchin");i.focus();i.addEventListener("input",()=>{clearTimeout(S.qt); $("#g-status").textContent=T("searchWait"); S.qt=setTimeout(()=>{S.query=i.value.trim();renderGuide();},3000);});}
+function openEdSearch(){S.esearching=true;const sb=$("#esrch");sb.innerHTML=`🔍 <input id="esrchin" value="${S.equery.replace(/"/g,"&quot;")}">`;const i=$("#esrchin");i.focus();i.addEventListener("input",()=>{clearTimeout(S.eqt); const em=$("#eempty"); em.hidden=false; em.textContent=T("searchWait"); S.eqt=setTimeout(()=>{S.equery=i.value.trim();renderEditor();},3000);});}
+function closeSearch(goList){const si=$("#srchin"); if(si){clearTimeout(S.qt); S.query=si.value.trim();} S.searching=false;vp.focus({preventScroll:true});renderGuide();if(goList&&$("#glist [data-f]"))setFocus($("#glist [data-f]"));else setFocus($("#srch"));}
 /* ---------- subtitles & audio (Menu button) ---------- */
 // Example tracks; real streams report theirs to the player. Most channels have one audio track and no subtitles.
 const TRACKS={"AXN (Brazil)":{audio:["por","eng"],subs:["por","eng"]},"Arte 1":{audio:["por","eng"],subs:["por"]},
@@ -672,7 +732,7 @@ function effAudio(n){const a=tracksOf(n).audio;return a.includes(S.prefAudio)?S.
 function effSubs(n){const s=tracksOf(n).subs;return S.subs!=="off"&&s.includes(S.subs)?S.subs:"off"}
 const TM={level:"top",timer:null};
 function canMenu(){return (S.screen==="guide"&&S.playing&&!tuneTimer)||S.screen==="full"}
-function toggleTrackMenu(){ if(!$("#tmenu").hidden) return closeTm(); if(!canMenu()||!$("#refresh").hidden) return; TM.level="top"; $("#tmenu").hidden=false; renderTm(); armTmClose(); renderNote("menu"); }
+function toggleTrackMenu(){ if(!$("#tmenu").hidden) return closeTm(); if(!canMenu()||!$("#refresh").hidden) return; TM.level="top"; TM.msg=""; $("#tmenu").hidden=false; renderTm(); armTmClose(); renderNote("menu"); }
 function closeTm(){ const m=$("#tmenu"); if(!m||m.hidden) return; m.hidden=true; clearTimeout(TM.timer);
   const back=S.screen==="guide"?$(`#glist [data-name="${CSS.escape(S.playing||"")}"]`):null;
   if(back) setFocus(back); else {$$(".stage .focus").forEach(e=>e.classList.remove("focus"));focused=null;}
@@ -684,7 +744,10 @@ function renderTm(focusKey){
   if(TM.level==="top"){
     const subsVal=tr.subs.length?(effSubs(n)==="off"?T("subsOff"):LN(effSubs(n))):T("notAvail");
     const audVal=LN(effAudio(n))+(tr.audio.length<2?` · ${T("oneTrack")}`:"");
+    const pinned=S.pins.includes(n);
     m.innerHTML=`<h3>${T("mTitle")}</h3><p class="sub">${n}</p>
+      <div class="trow" data-f data-act="tm-pin" data-k="pin">${pinned?T("mUnpin"):T("mPin")}<span>${T("pinCount")(S.pins.length)}</span></div>
+      ${TM.msg?`<p class="sub" style="color:var(--tv-ok);margin:-2px 0 18px">${TM.msg}</p>`:""}
       <div class="trow ${tr.subs.length?"":"dis"}" ${tr.subs.length?"data-f":""} data-act="tm-open" data-k="subs">${T("mSubs")}<span>${subsVal}${tr.subs.length?" ›":""}</span></div>
       <div class="trow ${tr.audio.length>1?"":"dis"}" ${tr.audio.length>1?"data-f":""} data-act="tm-open" data-k="audio">${T("mAudio")}<span>${audVal}${tr.audio.length>1?" ›":""}</span></div>
       <div class="foot">${T("mFoot")}</div>`;
@@ -709,7 +772,7 @@ function updateCaptions(){
 const vp=$("#vp");
 vp.addEventListener("keydown",e=>{
   if(e.target.id==="esrchin"){
-    if(e.key==="Enter"||e.key==="Escape"){e.preventDefault();S.esearching=false;vp.focus({preventScroll:true});renderEditor();
+    if(e.key==="Enter"||e.key==="Escape"){e.preventDefault();clearTimeout(S.eqt);S.equery=e.target.value.trim();S.esearching=false;vp.focus({preventScroll:true});renderEditor();
       setFocus(e.key==="Enter"&&$("#elist [data-f]")?$("#elist [data-f]"):$("#esrch"));}
     return;
   }
@@ -740,13 +803,13 @@ new ResizeObserver(()=>{stage.style.transform=`scale(${vp.clientWidth/1920})`}).
 
 /* notes under the TV (about the preview, so they stay in English) */
 const NOTES={
- home:["Home","Clock top left, date top right, both large. The first three tiles are your most-watched channels over the last 4 weeks; selecting one opens it straight to full screen. LIVE TV opens the full channel list. Press Back (Esc) here to see the exit confirmation."],
- guide:["Live TV","New: Search. Press OK on 🔍 Search and type (on the TV the Fire TV keyboard opens); the list narrows as you type and covers all categories, ignoring accents. Try “glo” or “educacao”. Enter goes to the results; Back clears the search.","New: jump by letter. On the Fire TV remote, ⏪ Rewind and ⏩ Fast-forward jump to the previous / next letter; a big letter appears for a moment. In this preview use Page Up / Page Down (or , and .). Lists are now sorted A–Z.","About 8 channels show at once. The small number at the end of each row is the channel's source (1 = iptv-org, 2 = famelack). Left/Right on the category chip changes category. Nothing streams until you press OK; OK again goes full screen.","Freeze protection: after OK the app waits about 0.9 s for the remote to settle; more presses in that window only change which channel loads. Streams that fail or stall for 15 s are retried once, then reported as unavailable."],
+ home:["Home","New: a row of 5 📌 Pinned channels at the top, newest first. Pin the channel that is playing with the ☰ Menu button; when a 6th is pinned, the oldest one drops off. Empty slots show how to pin. Below it, the row with your 3 most-watched channels and LIVE TV.","Clock top left, date top right, both large. The first three tiles are your most-watched channels over the last 4 weeks; selecting one opens it straight to full screen. LIVE TV opens the full channel list. Press Back (Esc) here to see the exit confirmation."],
+ guide:["Live TV","Changed: search now waits 3 seconds after your last key before it runs, so typing stays smooth. Pressing Search (Enter here) runs it straight away.","New: Search. Press OK on 🔍 Search and type (on the TV the Fire TV keyboard opens); the list narrows as you type and covers all categories, ignoring accents. Try “glo” or “educacao”. Enter goes to the results; Back clears the search.","New: jump by letter. On the Fire TV remote, ⏪ Rewind and ⏩ Fast-forward jump to the previous / next letter; a big letter appears for a moment. In this preview use Page Up / Page Down (or , and .). Lists are now sorted A–Z.","About 8 channels show at once. The small number at the end of each row is the channel's source (1 = iptv-org, 2 = famelack). Left/Right on the category chip changes category. Nothing streams until you press OK; OK again goes full screen.","Freeze protection: after OK the app waits about 0.9 s for the remote to settle; more presses in that window only change which channel loads. Streams that fail or stall for 15 s are retried once, then reported as unavailable."],
  full:["Full screen","The banner shows for a few seconds after a channel change, then hides. Up/Down changes channel. Back returns to the guide with the same channel still playing."],
  settings:["Settings","Switch Language to Português: every screen and dialog in this preview, and in the app, changes language. Channel names stay as the broadcaster writes them.","Channel sources: press OK on an address to type a new one (the Fire TV keyboard opens; here, type and press Enter, or Esc to cancel). Each slot accepts an M3U playlist link or a famelack country page."],
  editor:["Channel Editor","New: 🔍 Search, the same as in Live TV. Type a few letters to find a channel among all ~400; Enter goes to the results, Back clears the search. The category · quality · source column now stays on one line; long channel names are shortened instead.","Every channel in the local copy, with a show/hide switch and the source it came from. Geo-blocked channels start hidden, marked with a crossed-out globe."],
- refresh:["Refresh Channels","Asks before replacing the local file. Hidden choices carry over for channels that still exist in the new list. If either source fails to download, the current list is kept."],
- menu:["Subtitles and audio","Opened with the ☰ Menu button (M here) while a channel plays in Live TV, in the preview box or full screen. Up/Down move inside the menu, OK opens a list and picks, Back goes up a level and then closes it. It also closes after 10 seconds without a key press.","Try AXN (Brazil): two audio tracks and two subtitle languages. GloboNews and CNN Brasil have Portuguese subtitles only. Rede Globo shows how a channel with nothing to choose looks.","Your choices are remembered for every channel: pick English audio once and channels that offer English start in English; subtitles stay on until you turn them off. Subtitle size is in Settings › Subtitles."],
+ refresh:["Refresh Channels","New: Quick scan and Full scan. Each checks every shown channel, up to 8 at a time, and hides the ones that don’t answer in time (3 seconds for Quick, 5 for Full) or answer with an error. The result lists every hidden channel; they can be shown again in the Channel Editor. Try Quick scan here: it hides 3 example channels.","Asks before replacing the local file. Hidden choices carry over for channels that still exist in the new list. If either source fails to download, the current list is kept."],
+ menu:["Channel options","New: 📌 Pin to home screen (or Unpin if it is already pinned) is the first row; the line under it says what happened, including which channel dropped off. Try pinning three more channels to see the oldest fall off.","Opened with the ☰ Menu button (M here) while a channel plays in Live TV, in the preview box or full screen. Up/Down move inside the menu, OK opens a list and picks, Back goes up a level and then closes it. It also closes after 10 seconds without a key press.","Try AXN (Brazil): two audio tracks and two subtitle languages. GloboNews and CNN Brasil have Portuguese subtitles only. Rede Globo shows how a channel with nothing to choose looks.","Your choices are remembered for every channel: pick English audio once and channels that offer English start in English; subtitles stay on until you turn them off. Subtitle size is in Settings › Subtitles."],
  exit:["Exit confirmation","Back on the home screen asks before closing. Cancel is selected first; pressing Back again exits."],
  saver:["Screen saver","Shows the home screen's photo, darkened, with the clock and date on top. The clock moves every 20 seconds and the photo changes every 10 minutes. Any button wakes it. It never starts while a channel is playing.","The scene here is a drawn stand-in for a real photo."]
 };

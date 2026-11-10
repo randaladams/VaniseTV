@@ -57,6 +57,11 @@ class Prefs(context: Context) {
         get() = sp.getString("subSize", "sys") ?: "sys"
         set(v) = sp.edit().putString("subSize", v).apply()
 
+    /** Pinned channel keys for the home screen, newest first (see [Pins]). */
+    var pins: List<String>
+        get() = (sp.getString("pins", "") ?: "").split('\n').filter { it.isNotBlank() }
+        set(v) = sp.edit().putString("pins", v.joinToString("\n")).apply()
+
     var lastBackgroundFetch: Long
         get() = sp.getLong("lastBg", 0L)
         set(v) = sp.edit().putLong("lastBg", v).apply()

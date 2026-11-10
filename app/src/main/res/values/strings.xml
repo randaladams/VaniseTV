@@ -28,11 +28,11 @@
     <string name="press_ok">Press OK to watch here. Press OK again for full screen. ⏪ ⏩ jump by letter.</string>
     <string name="nothing_playing">Nothing playing yet</string>
     <string name="tuning">Tuning to %1$s…</string>
-    <string name="playing">Playing with sound. OK again for full screen · ☰ subtitles &amp; audio.</string>
+    <string name="playing">Playing with sound. OK again for full screen · ☰ pin, subtitles &amp; audio.</string>
     <string name="stream_failed">%1$s is not available right now. Try another channel.</string>
     <string name="now_playing">● Playing</string>
     <string name="channel_count">%1$d channels</string>
-    <string name="fullscreen_hint">Up / Down changes channel · ☰ subtitles &amp; audio · Back returns</string>
+    <string name="fullscreen_hint">Up / Down changes channel · ☰ options · Back returns</string>
     <string name="geo_blocked">Geo-blocked</string>
     <string name="not_247">Not 24/7</string>
     <string name="cat_novelas">Novelas</string>
@@ -89,7 +89,7 @@
     <string name="size_s">Small</string>
     <string name="size_m">Medium</string>
     <string name="size_l">Large</string>
-    <string name="menu_title">Subtitles and audio</string>
+    <string name="menu_title">Channel options</string>
     <string name="menu_subs">Subtitles</string>
     <string name="menu_audio">Audio</string>
     <string name="subs_off">Off</string>
@@ -98,4 +98,24 @@
     <string name="menu_foot">OK selects · Back goes back · closes by itself after 10 seconds</string>
     <string name="cc">CC</string>
     <string name="track_n">Track %1$d</string>
+    <string name="pinned_label">📌 Pinned</string>
+    <string name="pin_empty">Pin a channel with ☰ while it plays</string>
+    <string name="menu_pin">📌 Pin to home screen</string>
+    <string name="menu_unpin">📌 Unpin from home screen</string>
+    <string name="pin_count">%1$d of %2$d used</string>
+    <string name="pinned_msg">Pinned to the home screen.</string>
+    <string name="pin_dropped">Pinned. %1$s was removed (oldest pin).</string>
+    <string name="unpinned_msg">Removed from the home screen.</string>
+    <string name="search_wait">Searching 3 seconds after your last key… (or press Search to go now)</string>
+    <string name="scan_info">Quick scan and Full scan check every shown channel and hide the ones that don’t respond: Quick waits up to 3 seconds per channel, Full up to 5.</string>
+    <string name="scan_quick">Quick scan</string>
+    <string name="scan_full">Full scan</string>
+    <string name="scan_title">Checking channels (%1$d s each)…</string>
+    <string name="scan_progress">Checking %1$d of %2$d · %3$d not responding</string>
+    <string name="scan_done_title">Scan finished</string>
+    <string name="scan_done">%1$d of %2$d channels didn’t respond within %3$d seconds and are now hidden:</string>
+    <string name="scan_none">All %1$d channels responded within %2$d seconds. Nothing was hidden.</string>
+    <string name="scan_more">…and %1$d more</string>
+    <string name="scan_foot">You can show them again in the Channel Editor.</string>
+    <string name="scan_stopped">Scan stopped. Nothing was hidden.</string>
 </resources>

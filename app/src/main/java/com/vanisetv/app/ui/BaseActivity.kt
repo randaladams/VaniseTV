@@ -73,7 +73,10 @@ abstract class BaseActivity : ComponentActivity() {
             swallowNextUp = false
             return true
         }
-        return super.dispatchKeyEvent(event)
+        if (super.dispatchKeyEvent(event)) return true
+        // Arrow keys nobody used: move the highlight ourselves. When Android does it, Fire TV plays
+        // its own navigation click, which made the "Remote click sounds" setting seem to do nothing.
+        return event.action == KeyEvent.ACTION_DOWN && moveFocusSilently(currentFocus, event.keyCode)
     }
     private var swallowNextUp = false
 

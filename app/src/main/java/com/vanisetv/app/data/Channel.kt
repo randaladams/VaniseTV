@@ -29,6 +29,9 @@ data class Channel(
 
     val mainGroup: String get() = groups.firstOrNull() ?: "Undefined"
 
+    /** Name without accents, capitals or punctuation; computed once, used for search and A–Z sorting. */
+    val searchKey: String by lazy { Sources.normalize(name) }
+
     val isNovela: Boolean
         get() = name.contains("novela", ignoreCase = true) ||
             groups.any { it.contains("novela", ignoreCase = true) }

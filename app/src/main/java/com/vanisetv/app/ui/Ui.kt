@@ -3,6 +3,7 @@ package com.vanisetv.app.ui
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
+import android.view.KeyEvent
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -45,6 +46,24 @@ fun bindLogo(root: View, channel: Channel?) {
             root.background = GradientDrawable().apply { cornerRadius = 8 * root.resources.displayMetrics.density; setColor(Color.parseColor("#F2F5F7")) }
         })
     }
+}
+
+/**
+ * Moves focus for an arrow key the same way Android would (same next view, lists still scroll),
+ * but without the system navigation sound. Returns false for other keys or when nothing has focus.
+ */
+fun moveFocusSilently(focused: View?, keyCode: Int): Boolean {
+    val direction = when (keyCode) {
+        KeyEvent.KEYCODE_DPAD_UP -> View.FOCUS_UP
+        KeyEvent.KEYCODE_DPAD_DOWN -> View.FOCUS_DOWN
+        KeyEvent.KEYCODE_DPAD_LEFT -> View.FOCUS_LEFT
+        KeyEvent.KEYCODE_DPAD_RIGHT -> View.FOCUS_RIGHT
+        else -> return false
+    }
+    if (focused == null) return false
+    val next = focused.focusSearch(direction)
+    if (next != null && next !== focused) next.requestFocus(direction)
+    return true
 }
 
 /** Slight zoom on focus for tiles. */

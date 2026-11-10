@@ -7,21 +7,29 @@ import android.view.View
 import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import com.vanisetv.app.App
 import com.vanisetv.app.R
 
-/** Remote-friendly dialog: title, body, optional progress bar and up to two buttons. */
+/**
+ * Remote-friendly dialog: title, body, optional progress bar, optional text input and buttons.
+ * Two buttons sit side by side; three or more are stacked as a list.
+ */
 class TvDialog(private val activity: BaseActivity) {
     private val view = LayoutInflater.from(activity).inflate(R.layout.dialog_message, null)
-    private val dialog = Dialog(activity, R.style.Dialog_VaniseTV).apply { setContentView(view) }
+    private val dialog = object : Dialog(activity, R.style.Dialog_VaniseTV) {
+        override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+            if (super.dispatchKeyEvent(event)) return true
+            // Move focus ourselves so Fire TV doesn't add its own click (see BaseActivity).
+            return event.action == KeyEvent.ACTION_DOWN && moveFocusSilently(currentFocus, event.keyCode)
+        }
+    }.apply { setContentView(view) }
     private val title: TextView = view.findViewById(R.id.dlgTitle)
     private val body: TextView = view.findViewById(R.id.dlgBody)
     private val progress: ProgressBar = view.findViewById(R.id.dlgProgress)
-    private val buttons: View = view.findViewById(R.id.dlgButtons)
-    private val primary: TextView = view.findViewById(R.id.dlgPrimary)
-    private val secondary: TextView = view.findViewById(R.id.dlgSecondary)
+    private val buttons: LinearLayout = view.findViewById(R.id.dlgButtons)
 
     /** Called on Back. Return true to consume. Default: dismiss. */
     var onBack: (() -> Boolean)? = null
@@ -38,22 +46,40 @@ class TvDialog(private val activity: BaseActivity) {
 
     fun content(titleText: String, bodyText: String): TvDialog {
         title.text = titleText
+        setBody(bodyText)
+        return this
+    }
+
+    fun setBody(bodyText: String) {
         body.text = bodyText
         body.visibility = if (bodyText.isEmpty()) View.GONE else View.VISIBLE
+    }
+
+    /** Buttons in order; [focus] is the index selected first. */
+    fun choices(focus: Int, vararg items: Pair<String, () -> Unit>): TvDialog {
+        progress.visibility = View.GONE
+        buttons.visibility = View.VISIBLE
+        buttons.removeAllViews()
+        val stacked = items.size > 2
+        buttons.orientation = if (stacked) LinearLayout.VERTICAL else LinearLayout.HORIZONTAL
+        val views = items.mapIndexed { i, (label, action) ->
+            val b = LayoutInflater.from(activity).inflate(R.layout.item_dialog_button, buttons, false) as TextView
+            b.text = label
+            b.setOnClickListener { action() }
+            val lp = if (stacked) LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                .apply { if (i > 0) topMargin = activity.dp(8) }
+            else LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                .apply { if (i > 0) marginStart = activity.dp(14) }
+            buttons.addView(b, lp)
+            b
+        }
+        views.getOrNull(focus)?.requestFocus()
         return this
     }
 
     fun buttons(primaryText: String?, onPrimary: () -> Unit, secondaryText: String? = null, onSecondary: () -> Unit = { dismiss() }, focusSecondary: Boolean = false): TvDialog {
-        progress.visibility = View.GONE
-        buttons.visibility = View.VISIBLE
-        primary.visibility = if (primaryText == null) View.GONE else View.VISIBLE
-        primary.text = primaryText
-        primary.setOnClickListener { onPrimary() }
-        secondary.visibility = if (secondaryText == null) View.GONE else View.VISIBLE
-        secondary.text = secondaryText
-        secondary.setOnClickListener { onSecondary() }
-        (if (focusSecondary && secondaryText != null) secondary else primary).requestFocus()
-        return this
+        val items = listOfNotNull(primaryText?.let { it to onPrimary }, secondaryText?.let { it to onSecondary })
+        return choices(if (focusSecondary && items.size > 1) 1 else 0, *items.toTypedArray())
     }
 
     private val input: EditText = view.findViewById(R.id.dlgInput)
@@ -73,10 +99,21 @@ class TvDialog(private val activity: BaseActivity) {
 
     val inputText: String get() = input.text.toString()
 
+    /** Hides the buttons and shows a moving progress bar. */
     fun busy(): TvDialog {
         buttons.visibility = View.GONE
+        progress.isIndeterminate = true
         progress.visibility = View.VISIBLE
         return this
+    }
+
+    /** Progress bar that fills as [done] approaches [total]. */
+    fun progress(done: Int, total: Int) {
+        buttons.visibility = View.GONE
+        progress.visibility = View.VISIBLE
+        progress.isIndeterminate = false
+        progress.max = total.coerceAtLeast(1)
+        progress.progress = done
     }
 
     fun show(): TvDialog { if (!activity.isFinishing) dialog.show(); return this }

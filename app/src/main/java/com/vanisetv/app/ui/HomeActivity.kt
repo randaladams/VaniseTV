@@ -14,6 +14,7 @@ import com.vanisetv.app.R
 import com.vanisetv.app.data.Backgrounds
 import com.vanisetv.app.data.Channel
 import com.vanisetv.app.data.ChannelRepository
+import com.vanisetv.app.data.StreamChecker
 import kotlinx.coroutines.launch
 import java.util.Date
 
@@ -25,6 +26,7 @@ class HomeActivity : BaseActivity() {
     private lateinit var day: TextView
     private lateinit var tiles: List<View>
     private lateinit var liveTile: View
+    private lateinit var pinTiles: List<View>
     private var backgroundShown = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,8 +38,9 @@ class HomeActivity : BaseActivity() {
         day = findViewById(R.id.day)
         tiles = listOf(findViewById(R.id.tile1), findViewById(R.id.tile2), findViewById(R.id.tile3))
         liveTile = findViewById(R.id.tileLive)
+        pinTiles = listOf(R.id.pin1, R.id.pin2, R.id.pin3, R.id.pin4, R.id.pin5).map { findViewById(it) }
 
-        (tiles + liveTile).forEach { it.scaleOnFocus() }
+        (tiles + liveTile + pinTiles).forEach { it.scaleOnFocus() }
         listOf(R.id.btnSettings, R.id.btnEditor, R.id.btnRefresh).forEach { findViewById<View>(it).scaleOnFocus(1.03f) }
 
         liveTile.setBackgroundResource(R.drawable.bg_tile_live)
@@ -124,12 +127,49 @@ class HomeActivity : BaseActivity() {
         val logo = liveTile.findViewById<View>(R.id.tileLogo)
         bindLogo(logo, null)
         logo.setBackgroundResource(R.drawable.bg_live_badge)
-        logo.findViewById<TextView>(R.id.logoText).apply { setText(R.string.live_badge); textSize = 15f; visibility = View.VISIBLE }
+        logo.findViewById<TextView>(R.id.logoText).apply { setText(R.string.live_badge); textSize = 11f; maxLines = 1; visibility = View.VISIBLE }
         liveTile.findViewById<TextView>(R.id.tileTitle).setText(R.string.live_tv)
         liveTile.findViewById<TextView>(R.id.tileSub).text = getString(R.string.live_sub, visible.size)
         liveTile.findViewById<TextView>(R.id.tileRank).text = ""
 
-        if (currentFocus == null || currentFocus?.id == R.id.btnRetry) (if (top.isNotEmpty()) tiles[0] else liveTile).requestFocus()
+        val pinned = renderPins(byKey)
+        if (currentFocus == null || currentFocus?.id == R.id.btnRetry) {
+            (if (pinned > 0) pinTiles[0] else if (top.isNotEmpty()) tiles[0] else liveTile).requestFocus()
+        }
+    }
+
+    /** Pinned row: newest first; empty slots explain how to pin. Returns how many slots are filled. */
+    private fun renderPins(byKey: Map<String, Channel>): Int {
+        val pinned = app.prefs.pins.mapNotNull { byKey[it] }   // hidden or removed channels are skipped
+        pinTiles.forEachIndexed { i, tile ->
+            val channel = pinned.getOrNull(i)
+            val logo = tile.findViewById<View>(R.id.pinLogo)
+            val name = tile.findViewById<TextView>(R.id.pinName)
+            if (channel == null) {
+                bindLogo(logo, null)
+                logo.visibility = View.GONE
+                tile.setBackgroundResource(R.drawable.bg_pin_empty)
+                name.setText(R.string.pin_empty)
+                name.textSize = 11f
+                name.setTextColor(getColor(R.color.muted))
+                name.gravity = android.view.Gravity.CENTER
+                tile.setOnClickListener { startActivity(Intent(this, GuideActivity::class.java)) }
+            } else {
+                logo.visibility = View.VISIBLE
+                bindLogo(logo, channel)
+                tile.setBackgroundResource(R.drawable.bg_tile)
+                name.text = channel.name
+                name.textSize = 15f
+                name.setTextColor(getColor(R.color.fg))
+                name.gravity = android.view.Gravity.START or android.view.Gravity.CENTER_VERTICAL
+                tile.setOnClickListener {
+                    startActivity(Intent(this, GuideActivity::class.java)
+                        .putExtra(GuideActivity.EXTRA_CHANNEL, channel.key)
+                        .putExtra(GuideActivity.EXTRA_FULLSCREEN, true))
+                }
+            }
+        }
+        return pinned.size
     }
 
     private fun bindTile(tile: View, channel: Channel?, seconds: Long?, rank: Int) {
@@ -182,8 +222,50 @@ class HomeActivity : BaseActivity() {
 
     private fun confirmRefresh() {
         val dlg = TvDialog(this)
-        dlg.content(getString(R.string.refresh_title), getString(R.string.refresh_body))
-            .buttons(getString(R.string.refresh_now), {
+        dlg.content(getString(R.string.refresh_title), getString(R.string.refresh_body) + "\n\n" + getString(R.string.scan_info))
+            .choices(0,
+                getString(R.string.refresh_now) to { refreshNow(dlg) },
+                getString(R.string.scan_quick) to { runScan(dlg, 3) },
+                getString(R.string.scan_full) to { runScan(dlg, 5) },
+                getString(R.string.cancel) to { dlg.dismiss() })
+            .show()
+    }
+
+    /** Quick scan (3 s) / Full scan (5 s): hides every shown channel that doesn't answer in time. */
+    private fun runScan(dlg: TvDialog, seconds: Long) {
+        val list = app.repo.visible
+        dlg.content(getString(R.string.scan_title, seconds.toInt()), getString(R.string.scan_progress, 0, list.size, 0))
+        dlg.progress(0, list.size)
+        val job = lifecycleScope.launch {
+            val dead = StreamChecker.findDead(list, seconds) { checked, deadSoFar ->
+                dlg.setBody(getString(R.string.scan_progress, checked, list.size, deadSoFar))
+                dlg.progress(checked, list.size)
+            }
+            app.repo.setHidden(dead, true)
+            dlg.onBack = null
+            if (dead.isEmpty()) {
+                dlg.content(getString(R.string.scan_done_title), getString(R.string.scan_none, list.size, seconds.toInt()))
+            } else {
+                val shown = dead.take(SCAN_LIST_MAX).joinToString("\n") { "• ${it.name}" }
+                val more = if (dead.size > SCAN_LIST_MAX) "\n" + getString(R.string.scan_more, dead.size - SCAN_LIST_MAX) else ""
+                dlg.content(getString(R.string.scan_done_title),
+                    getString(R.string.scan_done, dead.size, list.size, seconds.toInt()) + "\n\n" + shown + more + "\n\n" + getString(R.string.scan_foot))
+            }
+            dlg.buttons(getString(R.string.ok), { dlg.dismiss() })
+            renderTiles()
+        }
+        // Back stops the scan; nothing is hidden unless it finishes.
+        dlg.onBack = {
+            job.cancel()
+            dlg.content(getString(R.string.refresh_channels), getString(R.string.scan_stopped))
+            dlg.buttons(getString(R.string.ok), { dlg.dismiss() })
+            dlg.onBack = null
+            true
+        }
+    }
+
+    private fun refreshNow(dlg: TvDialog) {
+                dlg.content(getString(R.string.loading_channels), "").busy()
                 dlg.content(getString(R.string.loading_channels), "").busy()
                 dlg.onBack = { true }   // can't cancel mid-download
                 lifecycleScope.launch {
@@ -202,7 +284,10 @@ class HomeActivity : BaseActivity() {
                     dlg.buttons(getString(R.string.ok), { dlg.dismiss() })
                     renderTiles()
                 }
-            }, getString(R.string.cancel), { dlg.dismiss() }, focusSecondary = true)
-            .show()
+    }
+
+    companion object {
+        /** Scan results list at most this many names; the rest are counted. */
+        private const val SCAN_LIST_MAX = 6
     }
 }

@@ -47,10 +47,21 @@ class EditorActivity : BaseActivity() {
         search.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) = applySearch(s?.toString().orEmpty())
+            override fun afterTextChanged(s: Editable?) {
+                handler.removeCallbacks(runSearch)
+                if (s.isNullOrBlank()) applySearch("")          // clearing is immediate
+                else {
+                    // Wait until typing pauses so each key press stays fast.
+                    empty.setText(R.string.search_wait)
+                    empty.visibility = View.VISIBLE
+                    handler.postDelayed(runSearch, GuideActivity.SEARCH_DELAY_MS)
+                }
+            }
         })
         search.setOnEditorActionListener { _, action, _ ->
             if (action == EditorInfo.IME_ACTION_SEARCH || action == EditorInfo.IME_ACTION_DONE) {
+                handler.removeCallbacks(runSearch)
+                applySearch(search.text.toString())                // Search key: go now
                 (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(search.windowToken, 0)
                 if (channels.isNotEmpty()) list.post { list.findViewHolderForAdapterPosition(0)?.itemView?.requestFocus() }
                 true
@@ -58,14 +69,14 @@ class EditorActivity : BaseActivity() {
         }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (query.isNotEmpty()) { search.setText(""); search.requestFocus() }   // first Back clears the search
+                if (search.text.isNotEmpty()) { search.setText(""); search.requestFocus() }   // first Back clears the search
                 else finish()
             }
         })
 
         lifecycleScope.launch {
             try { app.repo.ensureLoaded() } catch (e: Exception) { finish(); return@launch }
-            all = app.repo.channels.sortedBy { Sources.normalize(it.name) }
+            all = app.repo.channels.sortedBy { it.searchKey }
             channels = all
             list.adapter = adapter
             updateCount()
@@ -73,10 +84,18 @@ class EditorActivity : BaseActivity() {
         }
     }
 
+    private val handler = android.os.Handler(android.os.Looper.getMainLooper())
+    private val runSearch = Runnable { applySearch(search.text.toString()) }
+
+    override fun onDestroy() {
+        handler.removeCallbacksAndMessages(null)
+        super.onDestroy()
+    }
+
     private fun applySearch(text: String) {
         query = text.trim()
         val needle = Sources.normalize(query)
-        channels = if (needle.isEmpty()) all else all.filter { Sources.normalize(it.name).contains(needle) }
+        channels = if (needle.isEmpty()) all else all.filter { it.searchKey.contains(needle) }
         adapter.notifyDataSetChanged()
         list.scrollToPosition(0)
         empty.text = getString(R.string.search_none, query)
