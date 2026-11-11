@@ -20,7 +20,7 @@ object Sources {
     fun resolve(url: String): String {
         val u = url.trim()
         famelackPage.find(u)?.let {
-            return "https://raw.githubusercontent.com/famelack/famelack-data/main/tv/raw/countries/${it.groupValues[1].lowercase()}.json"
+            return "https://raw.githubusercontent.com/famelack/famelack-data/main/tv/countries/${it.groupValues[1].lowercase()}.json"
         }
         return u
     }

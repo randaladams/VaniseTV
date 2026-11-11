@@ -12,7 +12,7 @@ class SourcesTest {
 
     @Test fun famelackPageResolvesToDataFile() {
         assertEquals(
-            "https://raw.githubusercontent.com/famelack/famelack-data/main/tv/raw/countries/br.json",
+            "https://raw.githubusercontent.com/famelack/famelack-data/main/tv/countries/br.json",
             Sources.resolve("https://famelack.com/tv/br")
         )
         assertEquals(Sources.DEFAULT_1, Sources.resolve(Sources.DEFAULT_1))

@@ -4,7 +4,7 @@
     android:layout_height="wrap_content"
     android:background="@drawable/bg_panel"
     android:orientation="vertical"
-    android:padding="34dp">
+    android:padding="26dp">
 
     <TextView
         android:id="@+id/dlgTitle"
@@ -14,14 +14,22 @@
         android:textColor="@color/fg"
         android:textSize="28sp" />
 
-    <TextView
-        android:id="@+id/dlgBody"
+    <!-- Takes the squeeze on a small screen, so the buttons always stay visible -->
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:lineSpacingMultiplier="1.15"
-        android:textColor="#C6D3DC"
-        android:textSize="17sp" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scrollbars="none">
+
+        <TextView
+            android:id="@+id/dlgBody"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:lineSpacingMultiplier="1.15"
+            android:textColor="#C6D3DC"
+            android:textSize="17sp" />
+    </ScrollView>
 
     <EditText
         android:id="@+id/dlgInput"
@@ -53,6 +61,6 @@
         android:id="@+id/dlgButtons"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="26dp"
+        android:layout_marginTop="18dp"
         android:orientation="horizontal" />
 </LinearLayout>

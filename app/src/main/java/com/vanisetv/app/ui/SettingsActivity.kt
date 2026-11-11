@@ -20,6 +20,7 @@ class SettingsActivity : BaseActivity() {
     private lateinit var options: LinearLayout
     private val menuViews = HashMap<Section, View>()
     private var section = Section.TIME
+    private var clearingOptions = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,7 +52,7 @@ class SettingsActivity : BaseActivity() {
             setBackgroundResource(R.drawable.bg_menu)
             isFocusable = true
             isClickable = true
-            setPadding(dp(18), dp(14), dp(18), dp(14))
+            setPadding(dp(18), dp(10), dp(18), dp(10))   // all 7 rows must fit a 540 dp tall screen
         }
         row.addView(TextView(this).apply {
             text = label; textSize = 19f; isDuplicateParentStateEnabled = true
@@ -61,9 +62,9 @@ class SettingsActivity : BaseActivity() {
             tag = "value"; textSize = 14f; isDuplicateParentStateEnabled = true
             setTextColor(getColorStateList(R.color.row_text_muted))
         })
-        row.setOnFocusChangeListener { _, has -> if (has && section != s) showSection(s) }
+        row.setOnFocusChangeListener { _, has -> if (has && section != s && !clearingOptions) showSection(s) }
         row.setOnClickListener { options.getChildAt(0)?.takeIf { it.isFocusable }?.requestFocus() }
-        menu.addView(row, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { bottomMargin = dp(8) })
+        menu.addView(row, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { bottomMargin = dp(7) })
         return row
     }
 
@@ -90,7 +91,11 @@ class SettingsActivity : BaseActivity() {
     private fun showSection(s: Section) {
         section = s
         menuViews.forEach { (k, v) -> v.isSelected = k == s }
+        // Removing the focused option makes Android focus the first menu row for a moment.
+        // Without this guard that row would rebuild the panel too, leaving two sections in it.
+        clearingOptions = true
         options.removeAllViews()
+        clearingOptions = false
         val title = findViewById<TextView>(R.id.panelTitle)
         val hint = findViewById<TextView>(R.id.panelHint)
         val p = app.prefs

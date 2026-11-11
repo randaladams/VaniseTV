@@ -341,6 +341,10 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
             listOf(app.repo.groupLabel(ch.mainGroup), ch.quality, getString(R.string.fullscreen_hint)).filter { it.isNotEmpty() }.joinToString(" · ")
         findViewById<TextView>(R.id.bannerClock).text = Formats.timeLine(Date(), app.prefs.style)
         banner.visibility = View.VISIBLE
+        armBannerHide()
+    }
+
+    private fun armBannerHide() {
         handler.removeCallbacks(hideBanner)
         handler.postDelayed(hideBanner, 4_000)
     }
@@ -372,7 +376,8 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
         if (!::player.isInitialized || !menuOpen) return
         menuPanel.visibility = View.GONE
         handler.removeCallbacks(autoCloseMenu)
-        if (!fullscreen) (player.current ?: player.pending)?.let { focusChannel(it) }
+        if (fullscreen) armBannerHide()    // opening the menu paused the banner's timer
+        else (player.current ?: player.pending)?.let { focusChannel(it) }
     }
 
     private fun menuBack() { if (menuLevel != 0) renderMenuTop(menuLevel) else closeMenu() }

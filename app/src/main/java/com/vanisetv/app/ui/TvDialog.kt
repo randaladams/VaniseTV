@@ -62,16 +62,31 @@ class TvDialog(private val activity: BaseActivity) {
         buttons.removeAllViews()
         val stacked = items.size > 2
         buttons.orientation = if (stacked) LinearLayout.VERTICAL else LinearLayout.HORIZONTAL
-        val views = items.mapIndexed { i, (label, action) ->
-            val b = LayoutInflater.from(activity).inflate(R.layout.item_dialog_button, buttons, false) as TextView
+        fun button(parent: LinearLayout, label: String, action: () -> Unit): TextView {
+            val b = LayoutInflater.from(activity).inflate(R.layout.item_dialog_button, parent, false) as TextView
             b.text = label
             b.setOnClickListener { action() }
+            return b
+        }
+        val views = if (items.size >= 4) {
+            // A 2-column grid: four stacked buttons don't fit on the screen under a long message.
+            items.toList().chunked(2).flatMapIndexed { r, pair ->
+                val row = LinearLayout(activity).apply { orientation = LinearLayout.HORIZONTAL }
+                buttons.addView(row, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                    .apply { if (r > 0) topMargin = activity.dp(8) })
+                pair.mapIndexed { c, (label, action) ->
+                    button(row, label, action).also {
+                        row.addView(it, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                            .apply { if (c > 0) marginStart = activity.dp(8) })
+                    }
+                }
+            }
+        } else items.mapIndexed { i, (label, action) ->
             val lp = if (stacked) LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                 .apply { if (i > 0) topMargin = activity.dp(8) }
             else LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                 .apply { if (i > 0) marginStart = activity.dp(14) }
-            buttons.addView(b, lp)
-            b
+            button(buttons, label, action).also { buttons.addView(it, lp) }
         }
         views.getOrNull(focus)?.requestFocus()
         return this
