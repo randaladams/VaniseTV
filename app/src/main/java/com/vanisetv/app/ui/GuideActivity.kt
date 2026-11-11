@@ -677,7 +677,7 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
 
     companion object {
         const val SEARCH_DELAY_MS = 3_000L
-        private const val MOVE_LIMIT_MS = 400L
+        const val MOVE_LIMIT_MS = 400L
         const val EXTRA_CHANNEL = "channel"
         const val EXTRA_FULLSCREEN = "fullscreen"
         private const val PAYLOAD_MARK = "mark"

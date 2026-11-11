@@ -65,7 +65,7 @@
     <string name="editor_hidden">Ocultos  %1$d</string>
     <string name="editor_none_shown">Nenhum canal visível.</string>
     <string name="editor_none_hidden">Nenhum canal oculto.</string>
-    <string name="editor_hint">OK mostra ou oculta um canal. Canais ocultos somem da TV ao Vivo e da tela inicial. As mudanças são salvas na hora.</string>
+    <string name="editor_hint">OK mostra ou oculta o canal · ☰ buscar · Voltar retorna. As mudanças são salvas na hora.</string>
     <string name="shown">Visível</string>
     <string name="hidden">Oculto</string>
     <string name="photo_credit">Foto: %1$s · Wikimedia Commons</string>
@@ -121,4 +121,9 @@
     <string name="scan_more">…e mais %1$d</string>
     <string name="scan_foot">Você pode mostrá-los de novo no Editor de canais.</string>
     <string name="scan_stopped">Verificação interrompida. Nada foi ocultado.</string>
+    <string name="ep_nothing">Escolha um canal para ver a prévia</string>
+    <string name="ep_hidden_msg">Canal oculto: sem prévia</string>
+    <string name="ep_shown_hint">Aparece na TV ao Vivo e na tela inicial. OK oculta o canal e para a prévia.</string>
+    <string name="ep_hidden_hint">Oculto da TV ao Vivo e da tela inicial. OK mostra o canal de novo e inicia a prévia.</string>
+    <string name="ep_muted">%1$s · prévia sem som</string>
 </resources>

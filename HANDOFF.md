@@ -101,7 +101,11 @@ Tests (`app/src/test`): `M3uTest`, `SourcesTest` (snapshots `br.m3u` and `famela
 
 **All known issues are fixed: the user confirmed on 11/11/2026 that build 16 works on the TV.** That covers Refresh now (Source 2 downloads again), Settings (no doubled options, About visible), the Refresh dialog's four buttons, the full-screen banner hiding after ☰, Live TV auto-preview and Up/Down pacing, and the Channel Editor filter chips and search in both languages. Earlier confirmations (build 12): search no longer freezes, click sounds On/Off works, home layout fits, pinning from ☰ works.
 
-No work is in progress.
+**Build after 16 (11/11/2026), not yet tried on the TV:** the Channel Editor now works like Live TV. It lands on the first shown channel and plays a silent preview after the same settle time (`TvPlayer.SETTLE_MS`). Up/Down are paced with `GuideActivity.MOVE_LIMIT_MS`. Hidden channels never preview. OK shows a channel and starts the preview, or hides it and stops the preview at once. ☰ Menu jumps to Search and opens the keyboard. `TvPlayer(silent = true)` mutes the player and skips watch stats. The editor stops the preview when the screen saver comes on (`BaseActivity.onSaverShown`) and resumes it afterwards.
+
+**Shelved by the user:** the Fire TV home tile shows the small square icon on grey. Sideloaded apps get their 96×96 square icon, not the 16:9 banner. The idea to test later was to put the wide banner art into the xhdpi launcher icon.
+
+**User feedback to keep in mind:** with ~400 channels, getting from A to M or W is slow in Live TV and the Channel Editor; search helps. Live TV already jumps by letter with ⏪/⏩; the editor doesn't yet. The user said to keep it as is for now.
 
 Other notes:
 - **Many channels looked dead in a scan.** Scan-hidden channels stay hidden after Refresh by design; they can be shown again in the Channel Editor (now easy with the Hidden filter). Scan results depend on the network; some streams only answer from Brazil or slowly.

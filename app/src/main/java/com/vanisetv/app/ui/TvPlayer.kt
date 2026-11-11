@@ -33,7 +33,13 @@ import com.vanisetv.app.data.Channel
  *    as unavailable instead of leaving a frozen picture.
  */
 @OptIn(UnstableApi::class)
-class TvPlayer(private val context: Context, private val view: PlayerView, private val callback: Callback) {
+class TvPlayer(
+    private val context: Context,
+    private val view: PlayerView,
+    private val callback: Callback,
+    /** Channel Editor preview: no sound, and it doesn't count toward "most watched". */
+    private val silent: Boolean = false,
+) {
 
     interface Callback {
         fun onTuning(channel: Channel)
@@ -62,8 +68,16 @@ class TvPlayer(private val context: Context, private val view: PlayerView, priva
             .build()
         player = ExoPlayer.Builder(context).setLoadControl(loadControl).build().also {
             it.addListener(listener)
+            if (silent) it.volume = 0f
             view.player = it
         }
+    }
+
+    /** Stops the preview now (and any channel waiting to start). */
+    fun stop() {
+        handler.removeCallbacks(startRunnable)
+        pending = null
+        stopCurrent()
     }
 
     fun release() {
@@ -228,7 +242,7 @@ class TvPlayer(private val context: Context, private val view: PlayerView, priva
     private fun flushStats() {
         val ch = current ?: return
         if (playingSince > 0) { watchedMs += SystemClock.elapsedRealtime() - playingSince; playingSince = SystemClock.elapsedRealtime() }
-        if (watchedMs > 0) App.instance.stats.addSession(ch.key, watchedMs / 1000)
+        if (watchedMs > 0 && !silent) App.instance.stats.addSession(ch.key, watchedMs / 1000)
         watchedMs = 0
         if (player?.isPlaying != true) playingSince = 0
     }

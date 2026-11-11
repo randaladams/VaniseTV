@@ -66,7 +66,7 @@
     <string name="editor_hidden">Hidden  %1$d</string>
     <string name="editor_none_shown">No channels are shown.</string>
     <string name="editor_none_hidden">No channels are hidden.</string>
-    <string name="editor_hint">OK shows or hides a channel. Hidden channels disappear from Live TV and the home tiles. Changes are saved right away.</string>
+    <string name="editor_hint">OK shows or hides the channel · ☰ search · Back returns. Changes are saved right away.</string>
     <string name="shown">Shown</string>
     <string name="hidden">Hidden</string>
     <string name="photo_credit">Photo: %1$s · Wikimedia Commons</string>
@@ -122,4 +122,9 @@
     <string name="scan_more">…and %1$d more</string>
     <string name="scan_foot">You can show them again in the Channel Editor.</string>
     <string name="scan_stopped">Scan stopped. Nothing was hidden.</string>
+    <string name="ep_nothing">Choose a channel to preview it</string>
+    <string name="ep_hidden_msg">Hidden channel: no preview</string>
+    <string name="ep_shown_hint">Shown in Live TV and on the home screen. OK hides it and stops the preview.</string>
+    <string name="ep_hidden_hint">Hidden from Live TV and the home screen. OK shows it again and starts the preview.</string>
+    <string name="ep_muted">%1$s · preview without sound</string>
 </resources>

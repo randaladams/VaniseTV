@@ -110,8 +110,12 @@ abstract class BaseActivity : ComponentActivity() {
     private lateinit var saverBox: LinearLayout
     private var lastMove = 0L
 
+    /** Called when the screen saver comes on (the Channel Editor stops its preview then). */
+    protected open fun onSaverShown() {}
+
     private fun showSaver() {
         val root = findViewById<ViewGroup>(android.R.id.content) ?: return
+        onSaverShown()
         val d = resources.displayMetrics.density
         val textColor = Color.parseColor("#B3EEF3F6")
         saverTime = TextView(this).apply {

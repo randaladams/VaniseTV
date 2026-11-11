@@ -145,20 +145,29 @@ kbd{font:500 12px var(--f-ui);border:1px solid var(--page-line);border-bottom-wi
 /* editor */
 .e-head{position:absolute;left:96px;right:96px;top:64px;display:flex;align-items:center;gap:36px}
 .e-head h2{flex:1}
-.e-empty{position:absolute;left:104px;top:200px;font-size:32px;color:var(--tv-muted);font-family:var(--f-body)}
-.e-head h2{margin:0;font-size:60px;font-weight:500}
+.e-empty{position:absolute;left:104px;top:540px;font-size:32px;color:var(--tv-muted);font-family:var(--f-body)}
+.e-head h2{margin:0;font-size:48px;font-weight:500}
 .e-filter{display:flex;gap:12px}
 .fchip{display:flex;align-items:center;gap:12px;font-size:28px;padding:8px 24px;border-radius:999px;background:var(--tv-tile);color:var(--tv-muted);cursor:pointer;white-space:nowrap}
 .fchip b{font-weight:500;font-variant-numeric:tabular-nums}
 .fchip.sel{background:#3a5162;color:var(--tv-fg)}
 .fchip.sel::before{content:"✓";color:var(--tv-focus);font-weight:600}
 .fchip.focus{background:#516b7e;color:var(--tv-fg)}
-.e-list{position:absolute;left:96px;right:96px;top:180px;bottom:110px;overflow:hidden;display:grid;align-content:start;gap:10px;padding:8px}
-.erow{display:grid;grid-template-columns:96px minmax(0,1fr) auto 220px;align-items:center;gap:28px;background:var(--tv-tile);border-radius:12px;height:88px;padding:0 28px 0 12px;font-size:32px;cursor:pointer}
-.erow .logo{width:84px;height:64px;border-radius:10px;font-size:24px}
-.erow .grp{color:var(--tv-muted);font-size:26px;white-space:nowrap}
+.e-list{position:absolute;left:96px;right:96px;top:516px;bottom:84px;overflow:hidden;display:grid;align-content:start;gap:6px;padding:6px}
+/* editor: info + silent preview, laid out like Live TV */
+.e-info{position:absolute;left:96px;top:150px;width:880px}
+.e-info h2{font-size:56px;font-weight:500;margin:0 0 8px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.e-state{margin-top:22px;font-size:30px;display:flex;align-items:center;gap:14px}
+.e-state .dot{width:18px;height:18px;border-radius:50%;background:var(--tv-ok)}
+.e-state.off .dot{background:#5b6b77}
+.e-hint2{margin-top:16px;font-size:26px;color:#c6d3dc;font-family:var(--f-body)}
+.video.evideo{top:150px;width:620px;height:349px}
+.erow{display:grid;grid-template-columns:76px minmax(0,1fr) auto 200px;align-items:center;gap:22px;background:var(--tv-tile);border-radius:8px;height:62px;padding:0 20px 0 8px;font-size:28px;cursor:pointer}
+.erow .logo{width:68px;height:46px;border-radius:7px;font-size:20px}
+.erow .grp{color:var(--tv-muted);font-size:22px;white-space:nowrap}
 .erow .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.state{justify-self:end;display:flex;align-items:center;gap:14px;font-size:28px}
+.state{justify-self:end;display:flex;align-items:center;gap:14px;font-size:24px}
+.erow .pill{transform:scale(.8)}
 .pill{width:84px;height:44px;border-radius:999px;background:#3a4b58;position:relative}
 .pill::after{content:"";position:absolute;top:6px;left:6px;width:32px;height:32px;border-radius:50%;background:#c9d4dc;transition:left .15s}
 .erow.shown .pill{background:var(--tv-ok)}
@@ -290,6 +299,8 @@ kbd{font:500 12px var(--f-ui);border:1px solid var(--page-line);border-bottom-wi
         <!-- CHANNEL EDITOR -->
         <section class="screen" id="s-editor">
           <div class="e-head"><h2 data-t="editor">Channel Editor</h2><div class="e-filter" id="efilter"></div><div class="chip srch" data-f data-act="esearch" id="esrch"></div></div>
+          <div class="e-info" id="einfo"><h2 id="ename"></h2><div class="g-meta" id="emeta"></div><div class="e-state" id="estate"><span class="dot"></span><span id="estatetxt"></span></div><div class="e-hint2" id="ehint2"></div></div>
+          <div class="video evideo" id="evideo"><div class="pic" id="epic"></div><div class="msg"><div class="spinner"></div><span id="evmsg"></span></div><div class="vbadge"><span>🔇</span><span id="evlabel"></span></div></div>
           <div class="e-empty" id="eempty" hidden></div>
           <div class="e-list" id="elist"></div>
           <div class="e-foot" data-t="eHint"></div>
@@ -390,7 +401,11 @@ const TX={
    nowPlaying:"● Playing",liveSound:n=>`LIVE · ${n} · sound on`,fsHint:"Up / Down changes channel · ☰ options · Back returns",
    geo:"Geo-blocked",not247:"Not 24/7",
    eCount:(s,h)=>`<b>${s}</b> shown · ${h} hidden`,shown:"Shown",hidden:"Hidden",
-   eHint:"OK shows or hides a channel. Hidden channels disappear from Live TV and the home tiles. Changes are saved right away.",
+   eHint:"OK shows or hides the channel · ☰ search · Back returns. Changes are saved right away.",
+   epMuted:n=>`${n} · preview without sound`,epStarting:n=>`Starting preview of ${n}…`,epHiddenMsg:"Hidden channel: no preview",
+   epShownHint:"Shown in Live TV and on the home screen. OK hides it and stops the preview.",
+   epHiddenHint:"Hidden from Live TV and the home screen. OK shows it again and starts the preview.",
+   epNothing:"Choose a channel to preview it",
    credit:"Photo: (photographer's name) · Wikimedia Commons",
    rTitle:"Refresh channels?",rBody:"This downloads both channel sources, combines them without duplicates and replaces the local copy. Channels you hid stay hidden if they are still in the new list.",
    rNow:"Refresh now",cancel:"Cancel",rLoading:"Downloading channel list…",rDoneTitle:"Channel list updated",
@@ -436,7 +451,11 @@ const TX={
    nowPlaying:"● Tocando",liveSound:n=>`AO VIVO · ${n} · com som`,fsHint:"Cima / Baixo troca de canal · ☰ opções · Voltar retorna",
    geo:"Bloqueio regional",not247:"Não é 24h",
    eCount:(s,h)=>`<b>${s}</b> visíveis · ${h} ocultos`,shown:"Visível",hidden:"Oculto",
-   eHint:"OK mostra ou oculta um canal. Canais ocultos somem da TV ao Vivo e da tela inicial. As mudanças são salvas na hora.",
+   eHint:"OK mostra ou oculta o canal · ☰ buscar · Voltar retorna. As mudanças são salvas na hora.",
+   epMuted:n=>`${n} · prévia sem som`,epStarting:n=>`Iniciando a prévia de ${n}…`,epHiddenMsg:"Canal oculto: sem prévia",
+   epShownHint:"Aparece na TV ao Vivo e na tela inicial. OK oculta o canal e para a prévia.",
+   epHiddenHint:"Oculto da TV ao Vivo e da tela inicial. OK mostra o canal de novo e inicia a prévia.",
+   epNothing:"Escolha um canal para ver a prévia",
    credit:"Foto: (nome do fotógrafo) · Wikimedia Commons",
    rTitle:"Atualizar canais?",rBody:"Isto baixa as duas fontes de canais, combina sem duplicados e substitui a cópia local. Os canais ocultos continuam ocultos se ainda estiverem na nova lista.",
    rNow:"Atualizar agora",cancel:"Cancelar",rLoading:"Baixando a lista de canais…",rDoneTitle:"Lista de canais atualizada",
@@ -585,6 +604,26 @@ function renderEditor(){
   $("#elist").innerHTML=rows.map(c=>`<div class="erow ${c.shown?"shown":""}" data-f data-act="toggle" data-name="${c.name}">${logo(c)}<div class="nm">${c.name}${c.flag==="geo"?GEO():c.flag?` <span class="tag warn" style="font-size:20px">${flagText(c.flag)}</span>`:""}</div><div class="grp">${[G(c.group),c.q,T("source")(c.src)].filter(Boolean).join(" · ")}</div><div class="state"><span>${c.shown?T("shown"):T("hidden")}</span><div class="pill"></div></div></div>`).join("");
 }
 
+/* Editor preview: like Live TV but silent. Starts after the same settle time; never for hidden channels. */
+const EP={timer:null,playing:null};
+function edStop(){ clearTimeout(EP.timer); EP.timer=null; EP.playing=null; const v=$("#evideo"); if(v) v.classList.remove("playing","tuning"); }
+function edShowInfo(c){
+  $("#ename").textContent=c.name;
+  $("#emeta").innerHTML=`<span>${G(c.group)}</span>${c.q?`<span class="tag">${c.q}</span>`:""}<span class="tag">${T("source")(c.src)}</span>${c.flag?`<span class="tag warn">${flagText(c.flag)}</span>`:""}`;
+  const st=$("#estate"); st.classList.toggle("off",!c.shown); $("#estatetxt").textContent=c.shown?T("shown"):T("hidden");
+  $("#ehint2").textContent=c.shown?T("epShownHint"):T("epHiddenHint");
+}
+function edFocus(name){
+  const c=CH.find(x=>x.name===name); if(!c) return; edShowInfo(c);
+  const v=$("#evideo");
+  if(!c.shown){ edStop(); $("#evmsg").textContent=T("epHiddenMsg"); return; }
+  if(EP.playing===name && !EP.timer) return;
+  clearTimeout(EP.timer); v.classList.remove("playing"); v.classList.add("tuning"); $("#evmsg").textContent=T("epStarting")(name);
+  EP.timer=setTimeout(()=>{ EP.timer=null; EP.playing=name; v.classList.remove("tuning"); v.classList.add("playing");
+    $("#epic").style.background=fakeVideo(c); $("#evlabel").textContent=T("epMuted")(name); },SETTLE);
+}
+let edLastMove=0;
+
 /* ---------- screens & focus ---------- */
 let focused=null;
 function setFocus(el){
@@ -592,6 +631,7 @@ function setFocus(el){
   focused=el; el.classList.add("focus");
   el.scrollIntoView({block:"nearest"});
   if(S.screen==="guide" && el.dataset.name) showInfo(CH.find(c=>c.name===el.dataset.name));
+  if(S.screen==="editor" && el.classList.contains("erow")) edFocus(el.dataset.name);
   if(S.screen==="settings" && el.dataset.panel && el.dataset.panel!==S.panel){S.panel=el.dataset.panel;renderSettings();}
 }
 function scope(){return !$("#tmenu").hidden?$("#tmenu"):$("#refresh").hidden?$("#s-"+S.screen):$("#refresh")}
@@ -607,6 +647,7 @@ function go(name){
   if(name==="refresh"){ openRefresh(); return; }
   closeTm();
   closeRefresh(true);
+  edStop();
   if(S.screen!=="full"&&S.screen!=="saver") S.prev=S.screen;
   S.screen=name;
   $$(".screen").forEach(s=>s.classList.toggle("on",s.id==="s-"+name));
@@ -617,7 +658,8 @@ function go(name){
   if(name==="saver") drift();
   const first = name==="guide" ? ($(`#glist [data-name="${CSS.escape(S.playing||"")}"]`)||$("#glist [data-f]")) :
                 name==="settings" ? $(`.s-item[data-panel="${S.panel}"]`) :
-                name==="editor" ? $("#elist [data-f]") : scope().querySelector("[data-f]");
+                name==="editor" ? ($("#elist .erow.shown")||$("#elist [data-f]")) : scope().querySelector("[data-f]");
+  if(name==="editor"){ $("#evmsg").textContent=T("epNothing"); }
   focused=null; setFocus(first);
   renderNote(name);
 }
@@ -798,7 +840,8 @@ vp.addEventListener("keydown",e=>{
     return;
   }
   const k={ArrowLeft:"left",ArrowRight:"right",ArrowUp:"up",ArrowDown:"down"}[e.key];
-  if(e.key==="m"||e.key==="M"||e.key==="ContextMenu"){e.preventDefault();toggleTrackMenu();return}
+  if(e.key==="m"||e.key==="M"||e.key==="ContextMenu"){e.preventDefault(); if(S.screen==="editor"&&$("#refresh").hidden){openEdSearch();setFocus($("#esrch"));} else toggleTrackMenu(); return}
+  if(S.screen==="editor"&&(e.key==="ArrowUp"||e.key==="ArrowDown")){const now=Date.now(); if(now-edLastMove<400){e.preventDefault();return} edLastMove=now;}
   if(!$("#tmenu").hidden) armTmClose();
   if(S.screen==="saver"){e.preventDefault();back();return}
   if(S.screen==="guide"&&(e.key==="PageUp"||e.key==="PageDown"||e.key===","||e.key===".")){e.preventDefault();jumpLetter(e.key==="PageDown"||e.key===".");return}
@@ -818,7 +861,7 @@ const NOTES={
  guide:["Live TV","Changed: search now waits 3 seconds after your last key before it runs, so typing stays smooth. Pressing Search (Enter here) runs it straight away.","New: Search. Press OK on 🔍 Search and type (on the TV the Fire TV keyboard opens); the list narrows as you type and covers all categories, ignoring accents. Try “glo” or “educacao”. Enter goes to the results; Back clears the search.","New: jump by letter. On the Fire TV remote, ⏪ Rewind and ⏩ Fast-forward jump to the previous / next letter; a big letter appears for a moment. In this preview use Page Up / Page Down (or , and .). Lists are now sorted A–Z.","About 8 channels show at once. The small number at the end of each row is the channel's source (1 = iptv-org, 2 = famelack). Left/Right on the category chip changes category. Nothing streams until you press OK; OK again goes full screen.","Freeze protection: after OK the app waits about 0.9 s for the remote to settle; more presses in that window only change which channel loads. Streams that fail or stall for 15 s are retried once, then reported as unavailable."],
  full:["Full screen","The banner shows for a few seconds after a channel change, then hides. Up/Down changes channel. Back returns to the guide with the same channel still playing."],
  settings:["Settings","Switch Language to Português: every screen and dialog in this preview, and in the app, changes language. Channel names stay as the broadcaster writes them.","Channel sources: press OK on an address to type a new one (the Fire TV keyboard opens; here, type and press Enter, or Esc to cancel). Each slot accepts an M3U playlist link or a famelack country page."],
- editor:["Channel Editor","New: All / Shown / Hidden filter at the top, each with its count. Press Up to reach it, Left/Right to move, OK to choose. It works together with Search. A channel you switch while filtering stays in the list until you change the filter or leave the screen, so a mistake is easy to undo. The screen always opens on All.","New: 🔍 Search, the same as in Live TV. Type a few letters to find a channel among all ~400; Enter goes to the results, Back clears the search. The category · quality · source column now stays on one line; long channel names are shortened instead.","Every channel in the local copy, with a show/hide switch and the source it came from. Geo-blocked channels start hidden, marked with a crossed-out globe."],
+ editor:["Channel Editor","New: works like Live TV. It opens on the first shown channel and, after the same 0.9-second settle time, plays a preview without sound in the box on the right. Up/Down move one row at a time (at most one every 0.4 s), like Live TV.","Hidden channels show no preview. OK on a hidden channel shows it and starts the preview; OK on a shown channel hides it and stops the preview straight away.","☰ Menu (M here) jumps to 🔍 Search and opens the keyboard. All / Shown / Hidden and Search work as before.","New: All / Shown / Hidden filter at the top, each with its count. Press Up to reach it, Left/Right to move, OK to choose. It works together with Search. A channel you switch while filtering stays in the list until you change the filter or leave the screen, so a mistake is easy to undo. The screen always opens on All.","New: 🔍 Search, the same as in Live TV. Type a few letters to find a channel among all ~400; Enter goes to the results, Back clears the search. The category · quality · source column now stays on one line; long channel names are shortened instead.","Every channel in the local copy, with a show/hide switch and the source it came from. Geo-blocked channels start hidden, marked with a crossed-out globe."],
  refresh:["Refresh Channels","New: Quick scan and Full scan. Each checks every shown channel, up to 8 at a time, and hides the ones that don’t answer in time (3 seconds for Quick, 5 for Full) or answer with an error. The result lists every hidden channel; they can be shown again in the Channel Editor. Try Quick scan here: it hides 3 example channels.","Asks before replacing the local file. Hidden choices carry over for channels that still exist in the new list. If either source fails to download, the current list is kept."],
  menu:["Channel options","New: 📌 Pin to home screen (or Unpin if it is already pinned) is the first row; the line under it says what happened, including which channel dropped off. Try pinning three more channels to see the oldest fall off.","Opened with the ☰ Menu button (M here) while a channel plays in Live TV, in the preview box or full screen. Up/Down move inside the menu, OK opens a list and picks, Back goes up a level and then closes it. It also closes after 10 seconds without a key press.","Try AXN (Brazil): two audio tracks and two subtitle languages. GloboNews and CNN Brasil have Portuguese subtitles only. Rede Globo shows how a channel with nothing to choose looks.","Your choices are remembered for every channel: pick English audio once and channels that offer English start in English; subtitles stay on until you turn them off. Subtitle size is in Settings › Subtitles."],
  exit:["Exit confirmation","Back on the home screen asks before closing. Cancel is selected first; pressing Back again exits."],

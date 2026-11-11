@@ -1,20 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Compact Channel Editor row (same height as Live TV rows). -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="48dp"
-    android:layout_marginBottom="5dp"
+    android:layout_height="34dp"
+    android:layout_marginBottom="3dp"
     android:background="@drawable/bg_option"
     android:clickable="true"
     android:focusable="true"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:paddingStart="6dp"
-    android:paddingEnd="16dp">
+    android:paddingStart="4dp"
+    android:paddingEnd="10dp">
 
     <FrameLayout
         android:id="@+id/edLogo"
-        android:layout_width="56dp"
-        android:layout_height="38dp">
+        android:layout_width="40dp"
+        android:layout_height="27dp">
         <include layout="@layout/view_logo" />
     </FrameLayout>
 
@@ -22,37 +23,38 @@
         android:id="@+id/edName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="12dp"
         android:layout_weight="1"
         android:drawablePadding="8dp"
         android:ellipsize="end"
         android:maxLines="1"
         android:textColor="@color/fg"
-        android:textSize="17sp" />
+        android:textSize="15sp" />
 
     <TextView
         android:id="@+id/edGroup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="12dp"
         android:ellipsize="end"
-        android:maxWidth="340dp"
+        android:maxWidth="300dp"
         android:singleLine="true"
         android:textColor="@color/muted"
-        android:textSize="14sp" />
+        android:textSize="12sp" />
 
     <TextView
         android:id="@+id/edState"
-        android:layout_width="90dp"
+        android:layout_width="80dp"
         android:layout_height="wrap_content"
         android:gravity="end"
         android:textColor="@color/muted"
-        android:textSize="14sp" />
+        android:textSize="12sp" />
 
     <ImageView
         android:id="@+id/edSwitch"
-        android:layout_width="42dp"
-        android:layout_height="22dp"
-        android:layout_marginStart="12dp"
-        android:contentDescription="@null" />
+        android:layout_width="34dp"
+        android:layout_height="18dp"
+        android:layout_marginStart="10dp"
+        android:contentDescription="@null"
+        android:scaleType="fitCenter" />
 </LinearLayout>
