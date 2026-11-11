@@ -1,10 +1,14 @@
 # VaniseTV: handoff
 
-Everything a new session needs to continue this project. State as of **10/11/2026**, last feature commit `7aa293a` (pins, scans, search delay, click fix).
+Everything a new session needs to continue this project. State as of **10/11/2026**: last app code commit `7aa293a` (pins, scans, search delay, click fix), GitHub builds 11 and 12 green, `latest-build` holds build 12 (same app code as 11). Working tree clean, `main` in sync with GitHub.
+
+## Resuming in a new session
+
+Open a Claude Code session in `C:\Users\radams1\dont sync\VaniseTV` (`CLAUDE.md` loads automatically) and say, for example: *"Read HANDOFF.md and continue VaniseTV."* Then read "Status and open items" below and ask the user what they saw on the TV with the latest build. From a different machine, the build tools and signing key in "Machine setup" won't exist; the GitHub workflow can still build everything.
 
 ## What it is
 
-A sideloaded Amazon Fire TV app (Fire OS 6.7.1.1 = Android 7.1, API 25) for watching free Brazilian live TV channels. The owner is Randy (GitHub `randaladams`); the end user is Portuguese-speaking. Native Kotlin with Android Views (no Compose), ExoPlayer (Media3 1.4.1). Installed with `adb install -r`, **never** through the Amazon Appstore.
+A sideloaded Amazon Fire TV app (Fire OS 6.7.1.1 = Android 7.1, API 25) for watching free Brazilian live TV channels. The owner's GitHub account is `randaladams`; the app's menus are in English and Portuguese. Native Kotlin with Android Views (no Compose), ExoPlayer (Media3 1.4.1). Installed with `adb install -r`, **never** through the Amazon Appstore.
 
 - Repo: https://github.com/randaladams/VaniseTV (public, branch `main`)
 - Latest APK (rolling): https://github.com/randaladams/VaniseTV/releases/download/latest-build/VaniseTV.apk
@@ -78,15 +82,21 @@ Tooling quirks seen in this session:
 
 Tests (`app/src/test`): `M3uTest`, `SourcesTest` (with snapshots `br.m3u` and `famelack-br.json` from 09/11/2026: 402 + 132 entries, merged 408), `TranslationsTest`. Plus `PinsTest`. **19 tests, all passing.**
 
-## Feature list (all built and in CI build 9)
+## Feature list (all built and in CI build 12)
 
-Home (clock and date, top 3 by the last 4 weeks, LIVE TV, Settings / Editor / Refresh, exit confirmation, weekly Wikimedia backgrounds) · Live TV (preview with sound, freeze protection, compact rows with a source badge, categories incl. Novelas, search, letter jump, full screen with zapping, ☰ subtitles and audio menu with remembered choices) · Channel Editor (show/hide, geo-blocked icon, source, search) · Refresh (two sources merged, hidden choices kept) · Settings (US/BR time style, English/Português, click sounds, screen saver 3 min/10 min/1 h/never, subtitle size following Fire TV or S/M/L, channel sources, About) · Screen saver (current photo, moving clock).
+Home (clock and date, row of 5 pinned channels, top 3 by the last 4 weeks plus LIVE TV, Settings / Editor / Refresh, exit confirmation, weekly Wikimedia backgrounds) · Live TV (preview with sound, freeze protection, compact rows with a source badge, categories incl. Novelas, search with a 3-second wait, letter jump, full screen with zapping, ☰ Channel options menu: pin/unpin, subtitles and audio with remembered choices) · Channel Editor (show/hide, geo-blocked icon, source, search with a 3-second wait) · Refresh (two sources merged, hidden choices kept; Quick scan 3 s and Full scan 5 s hide dead streams and list them) · Settings (US/BR time style, English/Português, click sounds, screen saver 3 min/10 min/1 h/never, subtitle size following Fire TV or S/M/L, channel sources, About) · Screen saver (current photo, moving clock).
 
-## Not verified / open items
+## Status and open items
+
+**Waiting on the user's report from the TV for build 11/12.** The user has been running earlier builds on the Fire TV and reported two problems, both addressed in build 11 but not yet confirmed fixed:
+- Search froze on each key press (fix: 3-second wait, names normalized once per channel).
+- Remote click sounds On/Off made no difference, because Fire TV's own click always played (fix below).
+
+Also not yet confirmed on the TV: the new home layout fit, pinning from ☰, a real Quick/Full scan.
 
 - **Scan results depend on the network:** from the dev PC (US) about half of a 60-channel sample didn't answer at 3 s or 5 s; some streams only answer from Brazil.
 - **Click fix** assumes Fire TV's click is Android's focus-navigation sound; fallback is Fire TV Settings › Display & Sounds › Audio › Navigation Sounds.
-- **Nothing has been confirmed on a real Fire TV yet.** All checks were builds, unit tests and the browser preview. The user is about to sideload build 9.
+- **What Claude can test:** only builds, unit tests and the browser preview. There is no emulator or device on the dev PC's tooling path, so anything about real playback or the remote comes from the user.
 - **Subtitle and audio tracks** depend on each stream. Expect most channels to have one audio track and no subtitles. Suggested test channels: AXN or AMC Latin America (audio), news channels (CC). Undeclared CEA-608 captions won't appear.
 - **On-screen keyboard** (search, source URLs): uses `flagNoExtractUi|flagNoFullscreen`, but some Fire OS 6 keyboards still go full screen.
 - **Remote keys assumed:** ☰ = `KEYCODE_MENU`, ⏪/⏩ = `KEYCODE_MEDIA_REWIND` / `KEYCODE_MEDIA_FAST_FORWARD`.
