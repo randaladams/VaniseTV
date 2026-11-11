@@ -61,7 +61,11 @@
     <string name="about_never">Not yet</string>
     <string name="about_backgrounds">Backgrounds</string>
     <string name="about_backgrounds_value">%1$d photos from Wikimedia Commons</string>
-    <string name="editor_count">%1$d shown · %2$d hidden</string>
+    <string name="editor_all">All  %1$d</string>
+    <string name="editor_shown">Shown  %1$d</string>
+    <string name="editor_hidden">Hidden  %1$d</string>
+    <string name="editor_none_shown">No channels are shown.</string>
+    <string name="editor_none_hidden">No channels are hidden.</string>
     <string name="editor_hint">OK shows or hides a channel. Hidden channels disappear from Live TV and the home tiles. Changes are saved right away.</string>
     <string name="shown">Shown</string>
     <string name="hidden">Hidden</string>

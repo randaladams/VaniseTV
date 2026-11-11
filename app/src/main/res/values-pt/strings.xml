@@ -60,7 +60,11 @@
     <string name="about_never">Ainda não</string>
     <string name="about_backgrounds">Fundos de tela</string>
     <string name="about_backgrounds_value">%1$d fotos do Wikimedia Commons</string>
-    <string name="editor_count">%1$d visíveis · %2$d ocultos</string>
+    <string name="editor_all">Todos  %1$d</string>
+    <string name="editor_shown">Visíveis  %1$d</string>
+    <string name="editor_hidden">Ocultos  %1$d</string>
+    <string name="editor_none_shown">Nenhum canal visível.</string>
+    <string name="editor_none_hidden">Nenhum canal oculto.</string>
     <string name="editor_hint">OK mostra ou oculta um canal. Canais ocultos somem da TV ao Vivo e da tela inicial. As mudanças são salvas na hora.</string>
     <string name="shown">Visível</string>
     <string name="hidden">Oculto</string>

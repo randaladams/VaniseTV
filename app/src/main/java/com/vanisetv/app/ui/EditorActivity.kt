@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.vanisetv.app.R
 import com.vanisetv.app.data.Channel
+import com.vanisetv.app.data.ShowFilter
 import com.vanisetv.app.data.Sources
 import kotlinx.coroutines.launch
 
@@ -26,19 +27,27 @@ import kotlinx.coroutines.launch
  */
 class EditorActivity : BaseActivity() {
     private lateinit var list: RecyclerView
-    private lateinit var count: TextView
+    private lateinit var chips: Map<ShowFilter, TextView>
     private lateinit var empty: TextView
     private lateinit var search: EditText
     private var all: List<Channel> = emptyList()
     private var channels: List<Channel> = emptyList()
     private var query = ""
+    private var filter = ShowFilter.ALL
+    /** Keys of channels switched under the current filter; they stay listed until it changes. */
+    private val switched = HashSet<String>()
     private val adapter = Adapter()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_editor)
         list = findViewById(R.id.list)
-        count = findViewById(R.id.count)
+        chips = mapOf(
+            ShowFilter.ALL to findViewById<TextView>(R.id.filterAll),
+            ShowFilter.SHOWN to findViewById<TextView>(R.id.filterShown),
+            ShowFilter.HIDDEN to findViewById<TextView>(R.id.filterHidden),
+        )
+        chips.forEach { (f, chip) -> chip.setOnClickListener { setFilter(f) } }
         empty = findViewById(R.id.empty)
         search = findViewById(R.id.search)
         list.layoutManager = LinearLayoutManager(this)
@@ -79,7 +88,7 @@ class EditorActivity : BaseActivity() {
             all = app.repo.channels.sortedBy { it.searchKey }
             channels = all
             list.adapter = adapter
-            updateCount()
+            updateChips()
             list.post { list.findViewHolderForAdapterPosition(0)?.itemView?.requestFocus() }
         }
     }
@@ -94,17 +103,42 @@ class EditorActivity : BaseActivity() {
 
     private fun applySearch(text: String) {
         query = text.trim()
-        val needle = Sources.normalize(query)
-        channels = if (needle.isEmpty()) all else all.filter { it.searchKey.contains(needle) }
-        adapter.notifyDataSetChanged()
-        list.scrollToPosition(0)
-        empty.text = getString(R.string.search_none, query)
-        empty.visibility = if (channels.isEmpty() && query.isNotEmpty()) View.VISIBLE else View.GONE
+        refreshList()
     }
 
-    private fun updateCount() {
+    private fun setFilter(f: ShowFilter) {
+        filter = f
+        switched.clear()
+        refreshList()
+        updateChips()
+    }
+
+    /** Applies the filter and the search together. */
+    private fun refreshList() {
+        val needle = Sources.normalize(query)
+        channels = all.filter { filter.matches(it.hidden, it.key in switched) && (needle.isEmpty() || it.searchKey.contains(needle)) }
+        adapter.notifyDataSetChanged()
+        list.scrollToPosition(0)
+        empty.text = when {
+            query.isNotEmpty() -> getString(R.string.search_none, query)
+            filter == ShowFilter.SHOWN -> getString(R.string.editor_none_shown)
+            filter == ShowFilter.HIDDEN -> getString(R.string.editor_none_hidden)
+            else -> ""
+        }
+        empty.visibility = if (channels.isEmpty() && empty.text.isNotEmpty()) View.VISIBLE else View.GONE
+    }
+
+    private fun updateChips() {
         val hidden = all.count { it.hidden }
-        count.text = getString(R.string.editor_count, all.size - hidden, hidden)
+        chips.forEach { (f, chip) ->
+            val (label, n) = when (f) {
+                ShowFilter.ALL -> R.string.editor_all to all.size
+                ShowFilter.SHOWN -> R.string.editor_shown to all.size - hidden
+                ShowFilter.HIDDEN -> R.string.editor_hidden to hidden
+            }
+            chip.text = (if (f == filter) "✓ " else "") + getString(label, n)
+            chip.isSelected = f == filter
+        }
     }
 
     private inner class Adapter : RecyclerView.Adapter<Adapter.VH>() {
@@ -121,8 +155,9 @@ class EditorActivity : BaseActivity() {
                     if (pos == RecyclerView.NO_POSITION) return@setOnClickListener
                     val c = channels[pos]
                     app.repo.setHidden(c, !c.hidden)
+                    if (filter != ShowFilter.ALL) switched += c.key
                     notifyItemChanged(pos)
-                    updateCount()
+                    updateChips()
                 }
             }
         }
