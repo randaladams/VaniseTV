@@ -6,7 +6,7 @@ Everything a new session needs to continue this project. State as of **11/11/202
 
 1. On the new workstation: `git clone https://github.com/randaladams/VaniseTV.git` (or `git pull` in an existing clone).
 2. Open a Claude Code session in that folder (`CLAUDE.md` loads automatically) and say: *"Read HANDOFF.md and continue VaniseTV."*
-3. Read "Status and open items" below, then ask the user what they saw on the TV with **build 16**.
+3. Read "Status and open items" below, then ask the user what they'd like to do next.
 
 No local build tools are needed: every push to `main` is tested, built, signed and published by GitHub Actions (see "CI / releases"). Local builds need the extra setup in "Machine setup".
 
@@ -99,13 +99,9 @@ Tests (`app/src/test`): `M3uTest`, `SourcesTest` (snapshots `br.m3u` and `famela
 
 ## Status and open items
 
-**Waiting on the user's report from the TV for build 16.** Confirmed working on the TV (build 12): search no longer freezes, click sounds On/Off works, home layout fits, pinning from ☰ works. To check with build 16:
-- Refresh now succeeds (Source 2 downloads again).
-- Settings: options no longer doubled, About row visible.
-- Refresh dialog: all four buttons visible (2×2 grid).
-- Full screen: the info banner hides after ☰ is used. The only code path found that kept it up was the ☰ menu; if it still sticks, get exact steps.
-- Live TV: lands on the first channel with sound, Up/Down pace feels right (adjust `MOVE_LIMIT_MS` if not), one OK goes full screen.
-- Channel Editor: filter chips and search fit across the top in both languages.
+**All known issues are fixed: the user confirmed on 11/11/2026 that build 16 works on the TV.** That covers Refresh now (Source 2 downloads again), Settings (no doubled options, About visible), the Refresh dialog's four buttons, the full-screen banner hiding after ☰, Live TV auto-preview and Up/Down pacing, and the Channel Editor filter chips and search in both languages. Earlier confirmations (build 12): search no longer freezes, click sounds On/Off works, home layout fits, pinning from ☰ works.
+
+No work is in progress.
 
 Other notes:
 - **Many channels looked dead in a scan.** Scan-hidden channels stay hidden after Refresh by design; they can be shown again in the Channel Editor (now easy with the Hidden filter). Scan results depend on the network; some streams only answer from Brazil or slowly.
