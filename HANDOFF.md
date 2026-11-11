@@ -1,60 +1,67 @@
 # VaniseTV: handoff
 
-Everything a new session needs to continue this project. State as of **10/11/2026**: last app code commit `7aa293a` (pins, scans, search delay, click fix), GitHub builds 11 and 12 green, `latest-build` holds build 12 (same app code as 11). Working tree clean, `main` in sync with GitHub.
+Everything a new session needs to continue this project. State as of **11/11/2026**: last commit is this handoff, on top of `2d3ec99` (Channel Editor filter). GitHub builds 13 to 16 all green; `latest-build` holds **build 16**, which has every change below. Nothing is uncommitted; `main` is in sync with GitHub.
 
 ## Resuming in a new session
 
-Open a Claude Code session in `C:\Users\radams1\dont sync\VaniseTV` (`CLAUDE.md` loads automatically) and say, for example: *"Read HANDOFF.md and continue VaniseTV."* Then read "Status and open items" below and ask the user what they saw on the TV with the latest build. From a different machine, the build tools and signing key in "Machine setup" won't exist; the GitHub workflow can still build everything.
+1. On the new workstation: `git clone https://github.com/randaladams/VaniseTV.git` (or `git pull` in an existing clone).
+2. Open a Claude Code session in that folder (`CLAUDE.md` loads automatically) and say: *"Read HANDOFF.md and continue VaniseTV."*
+3. Read "Status and open items" below, then ask the user what they saw on the TV with **build 16**.
+
+No local build tools are needed: every push to `main` is tested, built, signed and published by GitHub Actions (see "CI / releases"). Local builds need the extra setup in "Machine setup".
 
 ## What it is
 
-A sideloaded Amazon Fire TV app (Fire OS 6.7.1.1 = Android 7.1, API 25) for watching free Brazilian live TV channels. The owner's GitHub account is `randaladams`; the app's menus are in English and Portuguese. Native Kotlin with Android Views (no Compose), ExoPlayer (Media3 1.4.1). Installed with `adb install -r`, **never** through the Amazon Appstore.
+A sideloaded Amazon Fire TV app (Fire OS 6.7.1.1 = Android 7.1, API 25, device AFTMM) for watching free Brazilian live TV channels. The owner's GitHub account is `randaladams`; the app's menus are in English and Portuguese. Native Kotlin with Android Views (no Compose), ExoPlayer (Media3 1.4.1). Installed with `adb install -r`, **never** through the Amazon Appstore.
 
 - Repo: https://github.com/randaladams/VaniseTV (public, branch `main`)
 - Latest APK (rolling): https://github.com/randaladams/VaniseTV/releases/download/latest-build/VaniseTV.apk
 - Clickable screen preview (private claude.ai artifact, same URL for every version): https://claude.ai/artifact/HFz8Ruw2SKixtCRD8fmLnL. The source is `preview/vanisetv-preview.html`.
+- **Screen size on the TV is 960×540 dp.** Layouts must fit that height; the Settings menu and the Refresh dialog were clipped before build 13.
 
 ## How the user likes to work
 
 - **Preview first for UI changes.** New screens, menus or layout changes go into `preview/vanisetv-preview.html` first and get published to the artifact above. The user tries it, then says "build it". Small fixes can go straight to code.
-- **Discuss first when asked.** If the user says "discuss first", answer with a design and questions only, and don't write code.
+- **Discuss first when asked.** If the user says "discuss", answer with a design and questions only, and write code only after they agree.
 - **Every visible text in English and Portuguese (pt-BR).** This is a hard requirement. `TranslationsTest` fails the build if a string lacks Portuguese, placeholders differ, or a layout hard-codes text. The preview must translate everything too: all strings live in its `TX.en` / `TX.pt` tables.
-- **Commit and push only when asked.** "Yes, push it" or "build it" has meant commit, push, then wait for the GitHub build and report the result. Commit messages end with the `Co-Authored-By` line the harness provides.
+- **Commit and push only when asked.** "Build it" or "yes, push it" means commit, push, wait for the GitHub build and report the result. "Write and commit" means commit only. Commit messages end with the `Co-Authored-By` line the harness provides.
+- The user tests on the TV and reports back with phone photos of the screen.
 - Plain, short explanations. The user is not an Android developer.
 
-## Machine setup (Windows, user `radams1`)
+## Machine setup
 
-| Thing | Location |
-|---|---|
-| Project | `C:\Users\radams1\dont sync\VaniseTV` |
-| JDK 17 | `C:\Users\radams1\Android\jdk17` (system `JAVA_HOME` is Java 8, so always set it per command) |
-| Android SDK (platform 34, build-tools 34, platform-tools) | `C:\Users\radams1\Android\sdk` |
-| adb | `C:\Users\radams1\Android\sdk\platform-tools\adb.exe` |
-| Release keystore | `C:\Users\radams1\Android\vanisetv-release.jks` (alias `vanisetv`). Password is in `keystore.properties` (gitignored). **Never print or commit it.** |
-| `local.properties` | `sdk.dir=C:/Users/radams1/Android/sdk` (forward slashes; backslashes broke Gradle) |
+Two workstations have been used:
 
-Build and test (Git Bash):
+| | Original PC (user `radams1`) | Second PC (user `Randy`) |
+|---|---|---|
+| Project | `C:\Users\radams1\dont sync\VaniseTV` | `C:\Users\Randy\Desktop\VaniseTV\VaniseTV` (the inner folder; see note) |
+| JDK 17, Android SDK, adb | `C:\Users\radams1\Android\jdk17`, `...\Android\sdk` | **none**: all builds ran on GitHub |
+| Release keystore | `C:\Users\radams1\Android\vanisetv-release.jks` (alias `vanisetv`) | not present |
+| Python | yes | yes (3.12) |
+
+Note on the second PC: `C:\Users\Randy\Desktop\VaniseTV` is an old clone whose tracked files show as deleted; the real, up-to-date clone is the `VaniseTV` folder inside it. Don't commit from the outer one.
+
+For a **local build** on any machine you need JDK 17, Android SDK (platform 34, build-tools 34, platform-tools), `local.properties` with `sdk.dir=C:/path/to/sdk` (forward slashes; backslashes broke Gradle) and, for a signed release, the keystore plus `keystore.properties`. Both properties files are gitignored. **Never print or commit the keystore or its password.** Then (Git Bash):
 
 ```bash
-cd "/c/Users/radams1/dont sync/VaniseTV"
-export JAVA_HOME="C:/Users/radams1/Android/jdk17"
+export JAVA_HOME="C:/path/to/jdk17"     # system Java is often 8; set it per command
 ./gradlew --no-daemon -q testReleaseUnitTest assembleRelease
 # APK: app/build/outputs/apk/release/app-release.apk
 ```
 
-Tooling quirks seen in this session:
-- The Bash tool fails on heredocs that contain an apostrophe (`'`). Write a Python script to the scratchpad and run it with `python -I` instead.
-- No Node and no Pillow. PowerShell `System.Drawing` was used for image resizing.
-- `gh` is not installed. GitHub status was checked through the public REST API with `curl` (`/repos/randaladams/VaniseTV/actions/runs`, `/releases/tags/latest-build`). Wait for a run with a background loop, not by polling in the foreground.
+Tooling notes:
+- `gh` is not installed. GitHub status is checked through the public REST API with `curl` (`/repos/randaladams/VaniseTV/actions/runs`, `/actions/runs/<id>/jobs`, `/check-runs/<job id>/annotations`, `/releases/tags/latest-build`). Wait for a run with a background loop (`run_in_background`), not by polling in the foreground.
+- No Node and no Pillow. For text edits with accents or exact line endings, a small `python -I` script works well.
+- `cd` in a Bash call can change the session's working directory; use absolute paths.
 
 ## CI / releases
 
-`.github/workflows/build.yml` runs on push, PR, `workflow_dispatch` and `v*` tags. It tests, builds, and uploads the APK as an artifact.
-- **Pushes and manual runs on `main`** move the `latest-build` tag and replace the APK on the "Latest build" pre-release.
+`.github/workflows/build.yml` runs on push, PR, `workflow_dispatch` and `v*` tags. It runs the unit tests, builds, and uploads the APK as an artifact (`actions/upload-artifact@v7`).
+- **Pushes and manual runs on `main`** move the `latest-build` tag and replace the APK on the "Latest build" pre-release (`softprops/action-gh-release@v3`).
 - **`v*` tags** make a permanent release.
 - **Signing:** repo secrets `VANISETV_KEYSTORE_BASE64` and `VANISETV_KEYSTORE_PASSWORD` (set by the user). Without them nothing is published.
 - **Version codes:** CI builds use `100 + run_number` (`-PbuildNumber`), local builds use 2. After installing a CI build, a local build can't install over it without uninstalling first.
-- Build 5 failed during a GitHub Actions outage, not a code problem.
+- Both actions were moved to their Node 24 versions on 11/11/2026, which removed GitHub's Node.js 20 warning. The only remaining notice is that `ubuntu-latest` moves to Ubuntu 26; no action needed so far.
 
 ## Architecture (app/src/main/java/com/vanisetv/app)
 
@@ -63,46 +70,53 @@ Tooling quirks seen in this session:
 | `App.kt` | Application: `Prefs`, `ChannelRepository`, `WatchStats`, click `SoundPool`, Coil image loader (disk cache for logos, SVG support), schedules background photos |
 | `data/Channel.kt` | `Channel` (name, url, tvgId, logo, groups, quality, geoBlocked, not247, userAgent/referrer, `hidden`, `source` 1/2); `key = "$tvgId|$name"` |
 | `data/M3u.kt` | Parse/write M3U. Strips "(720p)" and "[Geo-blocked]" from names. Our own attributes `vanise-source="1|2"` and `vanise-hidden="1"` live in the EXTINF line |
-| `data/Sources.kt` | Two editable sources, defaults `https://iptv-org.github.io/iptv/countries/br.m3u` and `https://famelack.com/tv/br`. Either slot takes M3U or famelack; the format is **detected from content**. famelack pages map to `raw.githubusercontent.com/famelack/famelack-data/main/tv/countries/<cc>.json`; YouTube-only entries are skipped. `merge()` removes duplicates by URL or normalized name (accents and punctuation removed), keeping the earlier source. `normalize()` is reused for search and sorting |
-| `data/ChannelRepository.kt` | Local copy `files/channels.m3u`. First start downloads; refresh keeps hidden flags (by key, then URL). Geo-blocked channels start hidden. If any configured source fails, the refresh throws `SourceException(n)` and the old list is kept. `categories()`: All, Novelas (name or group contains "novela"), then groups by size, every list A–Z. PT group names live here |
-| `data/Prefs.kt` | style `br`/`us`, lang `en`/`pt`, clicks, saverMinutes (3/10/60/0), source1/2, lastSourceStats, audioLang, subsLang (`off`/lang/`und`), subSize (`sys`/s/m/l) |
-| `data/Pins.kt` | Home pins: newest first, max 5, a sixth drops the oldest (pure functions, `PinsTest`). Stored in `Prefs.pins` as channel keys |
-| `data/StreamChecker.kt` | Quick (3 s) / Full (5 s) scan: 8 parallel GETs (headers only, player-like UA, EXTVLCOPT UA/referrer); dead = no answer in time or non-2xx. Cancellable; `ChannelRepository.setHidden(list)` saves once |
+| `data/Sources.kt` | Two editable sources, defaults `https://iptv-org.github.io/iptv/countries/br.m3u` and `https://famelack.com/tv/br`. Either slot takes M3U or famelack; the format is **detected from content**. famelack pages map to `raw.githubusercontent.com/famelack/famelack-data/main/tv/countries/<cc>.json` (famelack removed the old `tv/raw/` folder on 10/11/2026, which broke Refresh until build 13). YouTube-only entries are skipped. `merge()` removes duplicates by URL or normalized name, keeping the earlier source. `normalize()` is reused for search and sorting |
+| `data/ChannelRepository.kt` | Local copy `files/channels.m3u`. First start downloads; refresh keeps hidden flags (by key, then URL). Geo-blocked channels start hidden. If any configured source fails, the refresh throws `SourceException(n)` and the old list is kept. `categories()`: All, Novelas, then groups by size, every list A–Z. PT group names live here |
+| `data/Prefs.kt` | style `br`/`us`, lang `en`/`pt`, clicks, saverMinutes (3/10/60/0), source1/2, lastSourceStats, audioLang, subsLang (`off`/lang/`und`), subSize (`sys`/s/m/l), pins |
+| `data/Pins.kt` | Home pins: newest first, max 5, a sixth drops the oldest (pure functions, `PinsTest`) |
+| `data/ShowFilter.kt` | Channel Editor filter ALL / SHOWN / HIDDEN; `matches(hidden, switched)` keeps a just-switched channel listed (`ShowFilterTest`) |
+| `data/StreamChecker.kt` | Quick (3 s) / Full (5 s) scan: 8 parallel GETs (headers only, player-like UA); dead = no answer in time or non-2xx. Cancellable |
 | `data/WatchStats.kt` | Seconds per channel per day, last 28 days; sessions under 30 s are ignored. Feeds the home top-3 tiles |
-| `data/Backgrounds.kt` | WorkManager weekly job: 3 random landscape photos from Commons `Category:Quality_images_of_Brazil` at 1920 px, keeps 10, stores the artist for the credit. `current()` / `next()` are shared by home and the screen saver |
+| `data/Backgrounds.kt` | WorkManager weekly job: 3 random landscape photos from Commons `Category:Quality_images_of_Brazil`, keeps 10, stores the artist for the credit |
 | `data/Net.kt` | OkHttp with UA `VaniseTV/1.0 (Fire TV; +https://github.com/randaladams/VaniseTV)`. Don't put the user's email in requests |
-| `ui/BaseActivity.kt` | Per-app locale (`attachBaseContext`), recreates when the language changes, click sounds (off while playing), **moves arrow-key focus itself (`moveFocusSilently` in Ui.kt) so Fire TV's system navigation click never plays**, screen saver overlay (photo darkened, moving clock, next photo every 10 min, releases keep-screen-on after 1 h) |
-| `ui/HomeActivity.kt` | Clock and date, **row of 5 pinned tiles**, row of top-3 tiles + LIVE TV (all go straight to full screen), Refresh dialog with Refresh now / Quick scan / Full scan (results list, Back stops a scan), Settings / Channel Editor / Refresh, exit confirmation (Back, then Back again exits), background and credit |
-| `ui/GuideActivity.kt` | Live TV: info panel, preview player, compact list, category chip (Left/Right), **search** EditText (runs 3 s after the last key, or at once on the Search key; uses `Channel.searchKey`), **letter jump** on Rewind/FF, full screen (Up/Down zaps, banner), **☰ Menu "Channel options" panel (Pin/Unpin, subtitles, audio)** (keys handled manually in `dispatchKeyEvent`; `swallowBackUp` stops the closing Back from leaving full screen), subtitle style |
-| `ui/TvPlayer.kt` | One ExoPlayer. Settles for 900 ms (zapping 700 ms) before tuning, stops the old stream first, 15 s stall watchdog with one retry, handles BEHIND_LIVE_WINDOW, applies EXTVLCOPT UA/referrer, records watch stats, track options/select/subtitlesOff, applies remembered preferences per channel |
-| `ui/SettingsActivity.kt` | Sections TIME, LANG, SOUND, SAVER, SUBS, SOURCES (editable URLs through `TvDialog.input`, restore defaults), ABOUT |
-| `ui/EditorActivity.kt` | All channels A–Z with show/hide; search; saves immediately |
-| `ui/TvDialog.kt` | Remote-friendly dialog: `choices()` (2 side by side, 3+ stacked), determinate `progress()`, optional text input; moves focus silently too |
+| `ui/BaseActivity.kt` | Per-app locale, recreates when the language changes, click sounds (off while playing), **moves arrow-key focus itself (`moveFocusSilently` in Ui.kt) so Fire TV's own navigation click never plays** (confirmed working on the TV), screen saver overlay |
+| `ui/HomeActivity.kt` | Clock and date, row of 5 pinned tiles, top-3 tiles + LIVE TV, Refresh dialog with Refresh now / Quick scan / Full scan / Cancel, Settings / Channel Editor / Refresh, exit confirmation, background and credit |
+| `ui/GuideActivity.kt` | Live TV. **Opens on the first channel and starts it in the preview; Up/Down, letter jump and the Search key preview the row they land on** (`previewChannel`, `previewFocusedRow`). **Up/Down limited to one step per 400 ms** (`MOVE_LIMIT_MS`, also in full screen). One OK = full screen. Category chip (Left/Right), search (3 s after the last key), letter jump on ⏪/⏩, full screen with banner (`armBannerHide` restarts its 4 s timer, also after the ☰ menu closes), ☰ Channel options (pin, subtitles, audio; keys handled in `dispatchKeyEvent`) |
+| `ui/TvPlayer.kt` | One ExoPlayer, so two streams can never play at once. Waits 900 ms (zapping 700 ms) for the remote to settle, stops the old stream first, 15 s stall watchdog with one retry, handles BEHIND_LIVE_WINDOW, records watch stats, track selection |
+| `ui/SettingsActivity.kt` | Sections TIME, LANG, SOUND, SAVER, SUBS, SOURCES, ABOUT. `clearingOptions` guard stops the panel being built twice (the "doubled options" bug); menu rows are compact so all 7 fit |
+| `ui/EditorActivity.kt` | All channels A–Z with show/hide, saves immediately. **All / Shown / Hidden chips with counts** (`FilterChip` style, `bg_filter_chip`, `filter_text`), combined with search; opens on All |
+| `ui/TvDialog.kt` | Remote-friendly dialog: 2 buttons side by side, 3 stacked, **4 or more in a 2-column grid**; the message sits in a ScrollView that shrinks first so buttons stay on screen; progress bar; text input |
 | `ui/Formats.kt`, `ui/Ui.kt` | US/BR time and date, day names; logo binding with an initials fallback, focus scaling |
 
-Tests (`app/src/test`): `M3uTest`, `SourcesTest` (with snapshots `br.m3u` and `famelack-br.json` from 09/11/2026: 402 + 132 entries, merged 408), `TranslationsTest`. Plus `PinsTest`. **19 tests, all passing.**
+Tests (`app/src/test`): `M3uTest`, `SourcesTest` (snapshots `br.m3u` and `famelack-br.json` from 09/11/2026), `TranslationsTest`, `PinsTest`, `ShowFilterTest`. **22 tests, all passing in build 16.**
 
-## Feature list (all built and in CI build 12)
+## Commits this session (10–11/11/2026)
 
-Home (clock and date, row of 5 pinned channels, top 3 by the last 4 weeks plus LIVE TV, Settings / Editor / Refresh, exit confirmation, weekly Wikimedia backgrounds) · Live TV (preview with sound, freeze protection, compact rows with a source badge, categories incl. Novelas, search with a 3-second wait, letter jump, full screen with zapping, ☰ Channel options menu: pin/unpin, subtitles and audio with remembered choices) · Channel Editor (show/hide, geo-blocked icon, source, search with a 3-second wait) · Refresh (two sources merged, hidden choices kept; Quick scan 3 s and Full scan 5 s hide dead streams and list them) · Settings (US/BR time style, English/Português, click sounds, screen saver 3 min/10 min/1 h/never, subtitle size following Fire TV or S/M/L, channel sources, About) · Screen saver (current photo, moving clock).
+- `a0270b8` Fixes from the user's TV report: famelack URL (Refresh failed), doubled Settings options, About row cut off, Cancel off screen in the Refresh dialog, banner stuck after the ☰ menu.
+- `370faea` Live TV auto-preview and 0.4 s movement limit.
+- `56c816d` CI actions to Node 24 versions.
+- `2d3ec99` Channel Editor All / Shown / Hidden filter.
 
 ## Status and open items
 
-**Waiting on the user's report from the TV for build 11/12.** The user has been running earlier builds on the Fire TV and reported two problems, both addressed in build 11 but not yet confirmed fixed:
-- Search froze on each key press (fix: 3-second wait, names normalized once per channel).
-- Remote click sounds On/Off made no difference, because Fire TV's own click always played (fix below).
+**Waiting on the user's report from the TV for build 16.** Confirmed working on the TV (build 12): search no longer freezes, click sounds On/Off works, home layout fits, pinning from ☰ works. To check with build 16:
+- Refresh now succeeds (Source 2 downloads again).
+- Settings: options no longer doubled, About row visible.
+- Refresh dialog: all four buttons visible (2×2 grid).
+- Full screen: the info banner hides after ☰ is used. The only code path found that kept it up was the ☰ menu; if it still sticks, get exact steps.
+- Live TV: lands on the first channel with sound, Up/Down pace feels right (adjust `MOVE_LIMIT_MS` if not), one OK goes full screen.
+- Channel Editor: filter chips and search fit across the top in both languages.
 
-Also not yet confirmed on the TV: the new home layout fit, pinning from ☰, a real Quick/Full scan.
-
-- **Scan results depend on the network:** from the dev PC (US) about half of a 60-channel sample didn't answer at 3 s or 5 s; some streams only answer from Brazil.
-- **Click fix** assumes Fire TV's click is Android's focus-navigation sound; fallback is Fire TV Settings › Display & Sounds › Audio › Navigation Sounds.
-- **What Claude can test:** only builds, unit tests and the browser preview. There is no emulator or device on the dev PC's tooling path, so anything about real playback or the remote comes from the user.
-- **Subtitle and audio tracks** depend on each stream. Expect most channels to have one audio track and no subtitles. Suggested test channels: AXN or AMC Latin America (audio), news channels (CC). Undeclared CEA-608 captions won't appear.
-- **On-screen keyboard** (search, source URLs): uses `flagNoExtractUi|flagNoFullscreen`, but some Fire OS 6 keyboards still go full screen.
+Other notes:
+- **Many channels looked dead in a scan.** Scan-hidden channels stay hidden after Refresh by design; they can be shown again in the Channel Editor (now easy with the Hidden filter). Scan results depend on the network; some streams only answer from Brazil or slowly.
+- **The preview's Live TV screen still shows the old behaviour** (OK to start a channel, no movement limit). Update it before the next Live TV UI change.
+- **What Claude can test:** only builds, unit tests and the browser preview. Anything about real playback or the remote comes from the user.
+- **Subtitle and audio tracks** depend on each stream; most channels have one audio track and no subtitles.
+- **On-screen keyboard:** uses `flagNoExtractUi|flagNoFullscreen`, but some Fire OS 6 keyboards still go full screen.
 - **Remote keys assumed:** ☰ = `KEYCODE_MENU`, ⏪/⏩ = `KEYCODE_MEDIA_REWIND` / `KEYCODE_MEDIA_FAST_FORWARD`.
 - **Older Fire OS certificate store:** HTTPS streams with newer certificates could fail. Conscrypt was considered and not added.
-- **Ideas discussed but not built:** Alexa voice search (not possible for sideloaded apps); a famelack-only category; plurals ("1 channels" in the category chip; search uses "(n)" to avoid this).
+- **Ideas discussed but not built:** Alexa voice search (not possible for sideloaded apps); a famelack-only category; plurals ("1 channels" in the category chip); keeping the other source's channels when one source fails to download.
 
 ## Preview notes
 
-`preview/vanisetv-preview.html` is a self-contained 1920×1080 TV mockup, scaled. Keys: arrows, Enter = OK, Esc/Backspace = Back, M = ☰ Menu, PageUp/PageDown = ⏪/⏩. The channel data and track lists are examples. When editing it: every string goes in `TX.en` and `TX.pt`, never write `*/` inside a JS comment (it broke the script once), test with the built-in browser pane (`file:///…/preview/vanisetv-preview.html`), then publish with the Artifact tool to the same URL. Locally the `[hidden]` reset is missing, so overlays can look visible in a plain file view; the page sets `.stage [hidden]{display:none!important}` for that.
+`preview/vanisetv-preview.html` is a self-contained 1920×1080 TV mockup, scaled. Keys: arrows, Enter = OK, Esc/Backspace = Back, M = ☰ Menu, PageUp/PageDown = ⏪/⏩. The channel data and track lists are examples. When editing it: every string goes in `TX.en` and `TX.pt`, never write `*/` inside a JS comment, test with the built-in browser pane (`file:///…/preview/vanisetv-preview.html`), then publish with the Artifact tool to the same URL. From a new session the artifact must be read (`action: "read"`) before it can be republished. Locally the `[hidden]` reset is missing, so the page sets `.stage [hidden]{display:none!important}`.
