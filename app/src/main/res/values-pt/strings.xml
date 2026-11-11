@@ -24,10 +24,10 @@
     <string name="refresh_done">%1$d canais: %2$d da Fonte 1 e %3$d novos da Fonte 2. %4$d duplicados e %5$d só do YouTube foram ignorados. %6$d canais estão ocultos.</string>
     <string name="refresh_failed">O download falhou, então a lista atual foi mantida.</string>
     <string name="all_channels">Todos os canais</string>
-    <string name="press_ok">Pressione OK para assistir aqui. OK de novo para tela cheia. ⏪ ⏩ pula por letra.</string>
+    <string name="press_ok">Cima / Baixo mostra o canal. OK abre em tela cheia. ⏪ ⏩ pula por letra.</string>
     <string name="nothing_playing">Nada tocando ainda</string>
     <string name="tuning">Sintonizando %1$s…</string>
-    <string name="playing">Tocando com som. OK de novo para tela cheia · ☰ fixar, legendas e áudio.</string>
+    <string name="playing">Tocando com som. OK para tela cheia · ☰ fixar, legendas e áudio.</string>
     <string name="stream_failed">%1$s não está disponível agora. Tente outro canal.</string>
     <string name="now_playing">● Tocando</string>
     <string name="channel_count">%1$d canais</string>

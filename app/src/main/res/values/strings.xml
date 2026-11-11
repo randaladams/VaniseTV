@@ -25,10 +25,10 @@
     <string name="refresh_done">%1$d channels: %2$d from Source 1 and %3$d new from Source 2. %4$d duplicates and %5$d YouTube-only channels were skipped. %6$d channels are hidden.</string>
     <string name="refresh_failed">The download failed, so your current channel list was kept.</string>
     <string name="all_channels">All channels</string>
-    <string name="press_ok">Press OK to watch here. Press OK again for full screen. ⏪ ⏩ jump by letter.</string>
+    <string name="press_ok">Up / Down previews a channel. OK opens full screen. ⏪ ⏩ jump by letter.</string>
     <string name="nothing_playing">Nothing playing yet</string>
     <string name="tuning">Tuning to %1$s…</string>
-    <string name="playing">Playing with sound. OK again for full screen · ☰ pin, subtitles &amp; audio.</string>
+    <string name="playing">Playing with sound. OK for full screen · ☰ pin, subtitles &amp; audio.</string>
     <string name="stream_failed">%1$s is not available right now. Try another channel.</string>
     <string name="now_playing">● Playing</string>
     <string name="channel_count">%1$d channels</string>

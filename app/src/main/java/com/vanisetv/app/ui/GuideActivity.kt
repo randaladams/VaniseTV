@@ -3,6 +3,7 @@ package com.vanisetv.app.ui
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.Gravity
@@ -54,6 +55,7 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
     private var fullscreen = false
     private var launchedFullscreen = false
     private var resumeChannel: Channel? = null
+    private var lastMoveAt = 0L
     private lateinit var previewParams: FrameLayout.LayoutParams
 
     override val isPlaybackActive: Boolean get() = ::player.isInitialized && player.isActive
@@ -116,7 +118,7 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
                 handler.removeCallbacks(runSearch)
                 applySearch(search.text.toString())                // Search key: go now
                 hideKeyboard()
-                if (channels.isNotEmpty()) focusRow(0)
+                channels.firstOrNull()?.let { focusRow(0); previewChannel(it) }
                 true
             } else false
         }
@@ -154,7 +156,9 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
                 enterFullscreen()
             } else focusChannel(start)
         } else {
+            // Opening Live TV lands on the first channel and starts it in the preview.
             list.post { list.findViewHolderForAdapterPosition(0)?.itemView?.requestFocus() ?: chip.requestFocus() }
+            channels.firstOrNull()?.let { player.request(it, 0) }
         }
     }
 
@@ -242,6 +246,7 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
             }
         }
         focusRow(target)
+        previewChannel(ch[target])
         letterView.text = letterOf(ch[target]).toString()
         letterView.visibility = View.VISIBLE
         handler.removeCallbacks(hideLetter)
@@ -273,6 +278,16 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
             channel?.not247 == true -> { flag.setText(R.string.not_247); flag.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0) }
             else -> { flag.text = ""; flag.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0) }
         }
+    }
+
+    /** Starts [channel] in the preview once the remote has settled, unless it is already on. */
+    private fun previewChannel(channel: Channel) {
+        if (player.current?.key != channel.key && player.pending?.key != channel.key) player.request(channel)
+    }
+
+    private fun previewFocusedRow() {
+        val row = list.focusedChild ?: return
+        channels.getOrNull(list.getChildAdapterPosition(row))?.let(::previewChannel)
     }
 
     private fun onChannelClicked(channel: Channel) {
@@ -588,6 +603,17 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
             if (event.action == KeyEvent.ACTION_DOWN) jumpLetter(event.keyCode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD)
             return true
         }
+        val isMoveKey = when (event.keyCode) {
+            KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN,
+            KeyEvent.KEYCODE_CHANNEL_UP, KeyEvent.KEYCODE_CHANNEL_DOWN -> true
+            else -> false
+        }
+        if (isMoveKey && ready && event.action == KeyEvent.ACTION_DOWN) {
+            // One step at a time, however fast the remote is pressed or held.
+            val now = SystemClock.uptimeMillis()
+            if (now - lastMoveAt < MOVE_LIMIT_MS) return true
+            lastMoveAt = now
+        }
         if (fullscreen && ready && event.action == KeyEvent.ACTION_DOWN) {
             when (event.keyCode) {
                 KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_CHANNEL_UP -> { zap(-1); return true }
@@ -596,7 +622,9 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
                 KeyEvent.KEYCODE_DPAD_RIGHT -> { showBanner(); return true }
             }
         }
-        return super.dispatchKeyEvent(event)
+        val handled = super.dispatchKeyEvent(event)
+        if (isMoveKey && ready && !fullscreen && event.action == KeyEvent.ACTION_DOWN) previewFocusedRow()
+        return handled
     }
 
     // ---------------- adapter ----------------
@@ -649,6 +677,7 @@ class GuideActivity : BaseActivity(), TvPlayer.Callback {
 
     companion object {
         const val SEARCH_DELAY_MS = 3_000L
+        private const val MOVE_LIMIT_MS = 400L
         const val EXTRA_CHANNEL = "channel"
         const val EXTRA_FULLSCREEN = "fullscreen"
         private const val PAYLOAD_MARK = "mark"
